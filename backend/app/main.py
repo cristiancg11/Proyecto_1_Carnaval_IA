@@ -7,18 +7,26 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.core.database import Base, engine
+from app.core.database import Base, engine, SessionLocal
 # Importar modelos para que Base.metadata los reconozca al crear las tablas
 import app.models  # noqa: F401
-# Importar router de endpoints
+# Importar script de carga inicial de datos
+from app.db.seed import seed_points_of_interest
+# Importar routers de endpoints
 from app.api.v1.endpoints.reports import router as reports_router
+from app.api.v1.endpoints.points_of_interest import router as pois_router
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Ciclo de vida de la aplicación: crea tablas al iniciar."""
-    # Creación automática de tablas en la base de datos configurada
+    """Ciclo de vida de la aplicación: crea tablas y ejecuta seeders al iniciar."""
+    # 1. Creación automática de tablas en la base de datos
     Base.metadata.create_all(bind=engine)
+
+    # 2. Ejecución del seeder de puntos de interés iniciales
+    with SessionLocal() as db:
+        seed_points_of_interest(db)
+
     yield
 
 
@@ -46,6 +54,12 @@ app.include_router(
     reports_router,
     prefix="/api/v1/reports",
     tags=["Reportes"]
+)
+
+app.include_router(
+    pois_router,
+    prefix="/api/v1/points-of-interest",
+    tags=["Puntos de Interés"]
 )
 
 
