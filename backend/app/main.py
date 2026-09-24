@@ -10,6 +10,8 @@ from app.core.config import settings
 from app.core.database import Base, engine
 # Importar modelos para que Base.metadata los reconozca al crear las tablas
 import app.models  # noqa: F401
+# Importar router de endpoints
+from app.api.v1.endpoints.reports import router as reports_router
 
 
 @asynccontextmanager
@@ -37,6 +39,13 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+
+# Registro de routers de la API
+app.include_router(
+    reports_router,
+    prefix="/api/v1/reports",
+    tags=["Reportes"]
 )
 
 

@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     # Base de datos: SQLite por defecto para desarrollo local, Postgres en producción
     DATABASE_URL: str = "sqlite:///./carnavalia.db"
 
+    # Inteligencia Artificial (Google Gemini)
+    GEMINI_API_KEY: str = ""
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
