@@ -6,6 +6,7 @@ class ZoneRiskBase(BaseModel):
     """Esquema base para la información de riesgo y congestión de una zona."""
     zone_name: str = Field(..., description="Nombre del sector o zona de la Senda del Carnaval.")
     risk_level: str = Field(..., description="Nivel de riesgo acumulado ('Bajo', 'Medio', 'Alto').")
+    congestion_percentage: float = Field(default=0.0, ge=0.0, le=100.0, description="Porcentaje estimado de congestión en la zona.")
     active_reports_count: int = Field(default=0, ge=0, description="Cantidad de reportes de incidencias activos en la zona.")
     latitude: float = Field(..., description="Latitud central geográfica de la zona.")
     longitude: float = Field(..., description="Longitud central geográfica de la zona.")

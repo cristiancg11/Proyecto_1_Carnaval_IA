@@ -44,15 +44,8 @@ INITIAL_POIS = [
 ]
 
 
+from app.db.seed_carnaval import seed_carnaval_data, CARNAVAL_PASTO_POIS
+
 def seed_points_of_interest(db: Session) -> None:
-    """Inserta los puntos de interés iniciales si la tabla está vacía."""
-    existing_count = db.query(PointOfInterest).count()
-    if existing_count == 0:
-        logger.info("Tabla points_of_interest vacía. Insertando datos semilla...")
-        for poi_data in INITIAL_POIS:
-            poi = PointOfInterest(**poi_data)
-            db.add(poi)
-        db.commit()
-        logger.info(f"Seeder exitoso: {len(INITIAL_POIS)} puntos de interés registrados.")
-    else:
-        logger.info(f"Puntos de interés existentes ({existing_count}). Se omite el seeder.")
+    """Inserta o sincroniza los puntos de interés iniciales si es necesario."""
+    seed_carnaval_data(db, force_refresh=False)

@@ -3,14 +3,14 @@ import Header from './components/Header';
 import MapView from './components/MapView';
 import ReportModal from './components/ReportModal';
 import ChatbotDrawer from './components/ChatbotDrawer';
-import AuthModal from './components/AuthModal';
 import InstallPwaPrompt from './components/InstallPwaPrompt';
+import LoginView from './components/LoginView';
 import { api } from './services/api';
 import { useAuth } from './context/AuthContext';
 import { RefreshCw, ShieldAlert, MapPin } from 'lucide-react';
 
 export function App() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const [pois, setPois] = useState([]);
   const [reports, setReports] = useState([]);
   const [zones, setZones] = useState([]);
@@ -18,9 +18,6 @@ export function App() {
   const [loading, setLoading] = useState(true);
   const [chatOpen, setChatOpen] = useState(false);
   const [reportModalOpen, setReportModalOpen] = useState(false);
-  const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [authInitialTab, setAuthInitialTab] = useState('login');
-  const [authPromptMessage, setAuthPromptMessage] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
@@ -61,22 +58,18 @@ export function App() {
     }
   }, []);
 
-  // Polling periódico cada 30 segundos
+  // Polling periódico cada 30 segundos solo si está autenticado
   useEffect(() => {
-    loadDashboardData();
-    const interval = setInterval(loadDashboardData, 30000);
-    return () => clearInterval(interval);
-  }, [loadDashboardData]);
+    if (isAuthenticated) {
+      loadDashboardData();
+      const interval = setInterval(loadDashboardData, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated, loadDashboardData]);
 
   // Manejar selección de coordenadas al hacer clic en el mapa
   const handleSelectCoordinates = (lat, lng) => {
     setSelectedLocation({ lat, lng });
-    if (!isAuthenticated) {
-      setAuthPromptMessage('Debes iniciar sesión para reportar un incidente ciudadano');
-      setAuthInitialTab('login');
-      setAuthModalOpen(true);
-      return;
-    }
     setReportModalOpen(true);
   };
 
@@ -91,6 +84,26 @@ export function App() {
   // Conteo de reportes por severidad
   const highRiskCount = reports.filter((r) => r.ai_risk_level === 'Alto').length;
 
+  // 1. Pantalla de carga mientras se verifica sesión local
+  if (authLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen w-screen bg-slate-950 text-slate-100">
+        <div className="relative flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 shadow-xl shadow-rose-500/30 text-3xl animate-pulse">
+          🎭
+        </div>
+        <p className="text-xs font-semibold text-slate-400 mt-4 tracking-wider uppercase animate-pulse">
+          Cargando CarnavalIA...
+        </p>
+      </div>
+    );
+  }
+
+  // 2. Si no está autenticado, mostrar pantalla completa de Login / Registro
+  if (!isAuthenticated) {
+    return <LoginView />;
+  }
+
+  // 3. Una vez logueado, mostrar la aplicación completa y el mapa
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-slate-950 text-slate-100">
       {/* 1. Barra de Navegación Superior */}
@@ -98,20 +111,8 @@ export function App() {
         isServerHealthy={isServerHealthy}
         onOpenChat={() => setChatOpen(!chatOpen)}
         onOpenReportModal={() => {
-          if (!isAuthenticated) {
-            setSelectedLocation(null);
-            setAuthPromptMessage('Debes iniciar sesión para reportar un incidente ciudadano');
-            setAuthInitialTab('login');
-            setAuthModalOpen(true);
-            return;
-          }
           setSelectedLocation(null);
           setReportModalOpen(true);
-        }}
-        onOpenAuth={(tab = 'login') => {
-          setAuthPromptMessage(null);
-          setAuthInitialTab(tab);
-          setAuthModalOpen(true);
         }}
         chatOpen={chatOpen}
         reportsCount={reports.length}
@@ -180,23 +181,7 @@ export function App() {
           onReportCreated={handleReportCreated}
         />
 
-        {/* 5. Modal de Autenticación (Login / Registro) */}
-        <AuthModal
-          isOpen={authModalOpen}
-          onClose={() => {
-            setAuthModalOpen(false);
-            setAuthPromptMessage(null);
-          }}
-          initialTab={authInitialTab}
-          promptMessage={authPromptMessage}
-          onSuccess={() => {
-            if (authPromptMessage) {
-              setReportModalOpen(true);
-            }
-          }}
-        />
-
-        {/* 6. Prompt para Instalar PWA */}
+        {/* 5. Prompt para Instalar PWA */}
         <InstallPwaPrompt />
       </main>
     </div>
