@@ -15,6 +15,7 @@ from app.db.seed import seed_points_of_interest
 # Importar routers de endpoints
 from app.api.v1.endpoints.reports import router as reports_router
 from app.api.v1.endpoints.points_of_interest import router as pois_router
+from app.api.v1.endpoints.chat import router as chat_router
 
 
 @asynccontextmanager
@@ -60,6 +61,12 @@ app.include_router(
     pois_router,
     prefix="/api/v1/points-of-interest",
     tags=["Puntos de Interés"]
+)
+
+app.include_router(
+    chat_router,
+    prefix="/api/v1/chat",
+    tags=["Chatbot IA"]
 )
 
 
