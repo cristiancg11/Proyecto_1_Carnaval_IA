@@ -23,4 +23,9 @@ __pycache__/
 *.log
 *.sqlite3
 *.db
+# Frontend y dependencias Node
+node_modules/
+dist/
+dist-ssr/
+
 .pytest_cache/

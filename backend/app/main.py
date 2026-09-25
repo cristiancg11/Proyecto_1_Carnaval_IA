@@ -12,11 +12,8 @@ from app.core.database import Base, engine, SessionLocal
 import app.models  # noqa: F401
 # Importar script de carga inicial de datos
 from app.db.seed import seed_points_of_interest
-# Importar routers de endpoints
-from app.api.v1.endpoints.reports import router as reports_router
-from app.api.v1.endpoints.points_of_interest import router as pois_router
-from app.api.v1.endpoints.chat import router as chat_router
-from app.api.v1.endpoints.zones import router as zones_router
+# Importar router unificado de la API v1
+from app.api.v1.api import api_router
 
 
 @asynccontextmanager
@@ -51,30 +48,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Registro de routers de la API
-app.include_router(
-    reports_router,
-    prefix="/api/v1/reports",
-    tags=["Reportes"]
-)
-
-app.include_router(
-    pois_router,
-    prefix="/api/v1/points-of-interest",
-    tags=["Puntos de Interés"]
-)
-
-app.include_router(
-    chat_router,
-    prefix="/api/v1/chat",
-    tags=["Chatbot IA"]
-)
-
-app.include_router(
-    zones_router,
-    prefix="/api/v1/zones",
-    tags=["Zonas de Riesgo"]
-)
+# Registro unificado de routers de la API
+app.include_router(api_router, prefix=settings.API_V1_STR)
 
 
 @app.get("/", tags=["General"])
