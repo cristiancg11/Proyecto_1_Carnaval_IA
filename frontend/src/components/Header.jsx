@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bot, Sparkles, Activity, PlusCircle, LogIn, LogOut, User } from 'lucide-react';
+import { Bot, Sparkles, Activity, PlusCircle, LogIn, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export function Header({

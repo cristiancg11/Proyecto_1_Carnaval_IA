@@ -4,6 +4,7 @@ import MapView from './components/MapView';
 import ReportModal from './components/ReportModal';
 import ChatbotDrawer from './components/ChatbotDrawer';
 import AuthModal from './components/AuthModal';
+import InstallPwaPrompt from './components/InstallPwaPrompt';
 import { api } from './services/api';
 import { useAuth } from './context/AuthContext';
 import { RefreshCw, ShieldAlert, MapPin } from 'lucide-react';
@@ -194,6 +195,9 @@ export function App() {
             }
           }}
         />
+
+        {/* 6. Prompt para Instalar PWA */}
+        <InstallPwaPrompt />
       </main>
     </div>
   );
