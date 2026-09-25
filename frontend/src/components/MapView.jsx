@@ -80,60 +80,60 @@ const DEFAULT_CARNAVAL_ZONES = [
   },
 ];
 
-// Helper para crear iconos Leaflet personalizados HTML (DivIcon)
-const createCustomIcon = (bgColor, iconHtml, pulse = false) => {
+// Helper para crear iconos Leaflet personalizados HTML (DivIcon) ultra-modernos con esquinas redondeadas y resplandor
+const createCustomIcon = (gradient, iconHtml, pulse = false, glowColor = 'rgba(255,255,255,0.4)') => {
   return L.divIcon({
     className: 'custom-leaflet-marker',
     html: `
       <div style="
-        background: ${bgColor};
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
+        background: ${gradient};
+        width: 38px;
+        height: 38px;
+        border-radius: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 2.5px solid #ffffff;
-        box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+        border: 2px solid rgba(255, 255, 255, 0.95);
+        box-shadow: 0 8px 24px -2px rgba(0, 0, 0, 0.65), 0 0 16px ${glowColor}, inset 0 1px 1px rgba(255,255,255,0.6);
         color: #ffffff;
-        font-size: 17px;
+        font-size: 18px;
         position: relative;
         cursor: pointer;
-        transition: transform 0.2s ease;
+        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
       ">
         ${pulse ? `<span style="
           position: absolute;
-          inset: -5px;
-          border-radius: 50%;
-          background: ${bgColor};
+          inset: -6px;
+          border-radius: 18px;
+          background: ${glowColor};
           opacity: 0.55;
-          animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+          animation: ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
           z-index: -1;
         "></span>` : ''}
-        ${iconHtml}
+        <span style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">${iconHtml}</span>
       </div>
     `,
-    iconSize: [36, 36],
-    iconAnchor: [18, 18],
-    popupAnchor: [0, -20],
+    iconSize: [38, 38],
+    iconAnchor: [19, 19],
+    popupAnchor: [0, -22],
   });
 };
 
-// Generador de iconos para Puntos de Interés según categoría
+// Generador de iconos para Puntos de Interés según categoría (Gradients modernos y neones)
 const getPoiIcon = (category) => {
   switch (category?.toLowerCase()) {
     case 'salud':
-      return createCustomIcon('#e11d48', '🏥');
+      return createCustomIcon('linear-gradient(135deg, #ff2a6d 0%, #e11d48 100%)', '🏥', false, 'rgba(255, 42, 109, 0.6)');
     case 'policia':
-      return createCustomIcon('#2563eb', '👮');
+      return createCustomIcon('linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', '👮', false, 'rgba(59, 130, 246, 0.6)');
     case 'tarima':
-      return createCustomIcon('#9333ea', '🎭');
+      return createCustomIcon('linear-gradient(135deg, #c084fc 0%, #9333ea 100%)', '🎭', false, 'rgba(192, 132, 252, 0.6)');
     case 'banio':
-      return createCustomIcon('#0891b2', '🚻');
+      return createCustomIcon('linear-gradient(135deg, #22d3ee 0%, #0891b2 100%)', '🚻', false, 'rgba(34, 211, 238, 0.6)');
     case 'salida':
-      return createCustomIcon('#059669', '🚪');
+      return createCustomIcon('linear-gradient(135deg, #34d399 0%, #059669 100%)', '🚪', false, 'rgba(52, 211, 153, 0.6)');
     default:
-      return createCustomIcon('#64748b', '📍');
+      return createCustomIcon('linear-gradient(135deg, #94a3b8 0%, #475569 100%)', '📍', false, 'rgba(148, 163, 184, 0.5)');
   }
 };
 
@@ -141,12 +141,12 @@ const getPoiIcon = (category) => {
 const getReportIcon = (riskLevel) => {
   switch (riskLevel?.toLowerCase()) {
     case 'alto':
-      return createCustomIcon('#dc2626', '⚠️', true);
+      return createCustomIcon('linear-gradient(135deg, #f43f5e 0%, #dc2626 100%)', '⚠️', true, 'rgba(244, 63, 94, 0.7)');
     case 'medio':
-      return createCustomIcon('#d97706', '⚡');
+      return createCustomIcon('linear-gradient(135deg, #fbbf24 0%, #d97706 100%)', '⚡', true, 'rgba(251, 191, 36, 0.7)');
     case 'bajo':
     default:
-      return createCustomIcon('#16a34a', 'ℹ️');
+      return createCustomIcon('linear-gradient(135deg, #10b981 0%, #059669 100%)', 'ℹ️', false, 'rgba(16, 185, 129, 0.5)');
   }
 };
 
@@ -157,18 +157,18 @@ const getZoneColors = (riskLevel, congestionPercentage) => {
 
   if (normRisk === 'alto' || cong >= 70) {
     return {
-      border: '#ef4444',
-      fill: '#ef4444',
-      badge: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
+      border: '#f43f5e',
+      fill: '#f43f5e',
+      badge: 'bg-rose-500/20 text-rose-300 border-rose-500/40',
       label: 'Alta Congestión / Riesgo Alto',
-      fillOpacity: 0.26,
+      fillOpacity: 0.28,
     };
   }
   if (normRisk === 'medio' || cong >= 40) {
     return {
-      border: '#f59e0b',
-      fill: '#f59e0b',
-      badge: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+      border: '#fbbf24',
+      fill: '#fbbf24',
+      badge: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
       label: 'Aglomeración Media',
       fillOpacity: 0.22,
     };
@@ -176,9 +176,9 @@ const getZoneColors = (riskLevel, congestionPercentage) => {
   return {
     border: '#10b981',
     fill: '#10b981',
-    badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+    badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
     label: 'Tráfico Fluido',
-    fillOpacity: 0.18,
+    fillOpacity: 0.16,
   };
 };
 
@@ -216,7 +216,6 @@ export function MapView({
   const effectiveZones = useMemo(() => {
     if (zones && zones.length > 0) {
       return zones.map((z) => {
-        // Enlazar coordenadas fidedignas si vienen parciales
         const defMatch = DEFAULT_CARNAVAL_ZONES.find(
           (dz) => dz.zone_name.toLowerCase() === z.zone_name.toLowerCase()
         );
@@ -241,7 +240,6 @@ export function MapView({
         (p) => p.category?.toLowerCase() === activeFilter.toLowerCase()
       );
     }
-    // Si seleccionó "zonas", no mostramos POIs para despejar las zonas
     if (activeFilter === 'zonas') return [];
     return pois;
   }, [pois, activeFilter]);
@@ -256,12 +254,12 @@ export function MapView({
   const showZones = activeFilter === 'todos' || activeFilter === 'zonas';
 
   return (
-    <div className="relative w-full h-full min-h-[500px] overflow-hidden shadow-2xl bg-slate-900">
-      {/* 1. Barra Flotante de Filtros Rápidos (Esquina Superior) */}
-      <div className="absolute top-4 left-4 z-[1000] flex flex-wrap items-center gap-1.5 p-1.5 rounded-2xl bg-slate-900/90 backdrop-blur-xl border border-slate-700/80 shadow-2xl max-w-[calc(100vw-2rem)] sm:max-w-none overflow-x-auto">
-        <span className="hidden sm:flex items-center gap-1 pl-2 pr-1 text-xs font-bold text-slate-400">
-          <Layers className="w-3.5 h-3.5 text-amber-400" />
-          <span>Filtros:</span>
+    <div className="relative w-full h-full min-h-[500px] overflow-hidden shadow-2xl bg-slate-950">
+      {/* 1. Barra Flotante de Filtros Rápidos (Cápsula de Cristal Futurista) */}
+      <div className="absolute top-4 left-4 z-[1000] flex items-center gap-1.5 p-1.5 rounded-full bg-slate-950/85 backdrop-blur-2xl border border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.65)] max-w-[calc(100vw-2rem)] sm:max-w-none overflow-x-auto">
+        <span className="hidden sm:flex items-center gap-1.5 pl-3 pr-2 text-xs font-black tracking-wider uppercase bg-gradient-to-r from-amber-400 via-rose-300 to-purple-400 bg-clip-text text-transparent select-none">
+          <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+          <span>Filtros</span>
         </span>
 
         {filterOptions.map((f) => {
@@ -270,13 +268,13 @@ export function MapView({
             <button
               key={f.id}
               onClick={() => setActiveFilter(f.id)}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-sm whitespace-nowrap active:scale-95 ${
+              className={`group flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-200 whitespace-nowrap active:scale-95 ${
                 isActive
-                  ? 'bg-gradient-to-r from-amber-500 via-rose-500 to-purple-600 text-white shadow-rose-500/25 ring-1 ring-white/20'
-                  : 'bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/60'
+                  ? 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-amber-500 text-white shadow-[0_0_22px_rgba(217,70,239,0.55)] ring-1 ring-white/30 scale-[1.03]'
+                  : 'text-slate-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.1] border border-white/[0.06] hover:border-white/20'
               }`}
             >
-              <span>{f.icon}</span>
+              <span className="text-sm transition-transform duration-200 group-hover:scale-110">{f.icon}</span>
               <span>{f.label}</span>
             </button>
           );
@@ -284,32 +282,34 @@ export function MapView({
       </div>
 
       {/* 2. Convenciones e Instrucción Flotante en la esquina inferior */}
-      <div className="absolute bottom-5 left-4 z-[1000] bg-slate-900/95 backdrop-blur-md px-3.5 py-3 rounded-2xl border border-slate-700/80 shadow-2xl text-xs space-y-2 hidden md:block max-w-xs">
-        <p className="font-extrabold text-slate-200 text-[11px] uppercase tracking-wider flex items-center gap-1.5">
+      <div className="absolute bottom-5 left-4 z-[1000] bg-slate-950/90 backdrop-blur-2xl px-4 py-3 rounded-2xl border border-white/10 shadow-[0_16px_40px_rgba(0,0,0,0.7)] text-xs space-y-2 hidden md:block max-w-xs">
+        <p className="font-black text-slate-100 text-[11px] uppercase tracking-wider flex items-center gap-1.5">
           <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-          <span>Senda del Carnaval Pasto</span>
+          <span className="bg-gradient-to-r from-amber-400 via-rose-300 to-purple-400 bg-clip-text text-transparent">
+            Senda del Carnaval Pasto
+          </span>
         </p>
 
         <div className="space-y-1.5 text-[11px]">
           <div className="flex items-center gap-2 text-slate-300">
-            <span className="w-4 h-1.5 rounded-full bg-gradient-to-r from-purple-500 via-rose-500 to-amber-400 inline-block shadow-sm"></span>
+            <span className="w-4 h-1.5 rounded-full bg-gradient-to-r from-violet-500 via-fuchsia-500 to-amber-400 inline-block shadow-sm"></span>
             <span className="font-semibold text-slate-200">Ruta Oficial Desfile (~7km)</span>
           </div>
           <div className="flex items-center gap-2 text-slate-300">
-            <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span>
+            <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)] inline-block"></span>
             <span>Riesgo / Congestión Alta</span>
           </div>
           <div className="flex items-center gap-2 text-slate-300">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span>
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)] inline-block"></span>
             <span>Congestión Media</span>
           </div>
           <div className="flex items-center gap-2 text-slate-300">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)] inline-block"></span>
             <span>Tráfico Fluido</span>
           </div>
         </div>
 
-        <p className="text-[10px] text-slate-400 pt-1.5 border-t border-slate-800">
+        <p className="text-[10px] text-slate-400 pt-1.5 border-t border-white/[0.08]">
           💡 Haz clic en el mapa para reportar una incidencia con IA.
         </p>
       </div>
@@ -330,42 +330,54 @@ export function MapView({
           maxZoom={19}
         />
 
-        {/* Trazado Oficial de la Senda del Carnaval con efecto neón/púrpura y ámbar */}
-        {/* Capa exterior brillante (Púrpura) */}
+        {/* Trazado Láser Multicapa de la Senda del Carnaval */}
+        {/* Capa 1: Resplandor difuso Fucsia Neón */}
         <Polyline
           positions={SENDA_DEL_CARNAVAL_COORDS}
           pathOptions={{
-            color: '#9333ea', // Púrpura vibrante
-            weight: 8,
-            opacity: 0.7,
+            color: '#ec4899',
+            weight: 12,
+            opacity: 0.35,
             lineCap: 'round',
             lineJoin: 'round',
           }}
         />
 
-        {/* Capa interior contrastante (Ámbar con guiones) */}
+        {/* Capa 2: Resplandor Eléctrico Violeta */}
         <Polyline
           positions={SENDA_DEL_CARNAVAL_COORDS}
           pathOptions={{
-            color: '#f59e0b', // Ámbar festivo
-            weight: 4,
-            opacity: 0.95,
-            dashArray: '10, 8',
+            color: '#8b5cf6',
+            weight: 6,
+            opacity: 0.85,
+            lineCap: 'round',
+            lineJoin: 'round',
+          }}
+        />
+
+        {/* Capa 3: Línea central punteada en Oro festivo */}
+        <Polyline
+          positions={SENDA_DEL_CARNAVAL_COORDS}
+          pathOptions={{
+            color: '#fbbf24',
+            weight: 2.5,
+            opacity: 1,
+            dashArray: '6, 8',
             lineCap: 'round',
           }}
         >
           <Popup>
-            <div className="p-1 min-w-[210px] text-slate-900 font-sans">
-              <div className="flex items-center gap-1.5 border-b border-slate-200 pb-1 mb-1.5">
-                <span className="text-lg">🎭</span>
-                <h3 className="font-extrabold text-sm text-purple-900">
+            <div className="p-1 min-w-[210px] font-sans">
+              <div className="flex items-center gap-2 border-b border-white/10 pb-1.5 mb-2">
+                <span className="text-xl">🎭</span>
+                <h3 className="font-black text-sm bg-gradient-to-r from-amber-400 via-rose-300 to-purple-400 bg-clip-text text-transparent">
                   Senda Oficial del Carnaval
                 </h3>
               </div>
-              <p className="text-xs text-slate-600 leading-relaxed">
+              <p className="text-xs text-slate-300 leading-relaxed">
                 Recorrido oficial de desfiles, murgas y carrozas monumentales de San Juan de Pasto por la Carrera 27 y principales plazas.
               </p>
-              <div className="mt-2 text-[11px] font-semibold text-rose-600 bg-rose-50 px-2 py-1 rounded-lg">
+              <div className="mt-2.5 text-[11px] font-bold text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2.5 py-1 rounded-xl inline-block">
                 Longitud aproximada: ~7 Kilómetros
               </div>
             </div>
@@ -391,11 +403,11 @@ export function MapView({
                 }}
               >
                 <Popup>
-                  <div className="p-1 min-w-[230px] font-sans text-slate-900">
+                  <div className="p-1 min-w-[230px] font-sans">
                     {/* Encabezado del sector */}
-                    <div className="flex items-center justify-between gap-2 border-b border-slate-200 pb-1.5 mb-2">
-                      <h3 className="font-black text-sm text-slate-900 flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5 text-rose-500" />
+                    <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-1.5 mb-2">
+                      <h3 className="font-black text-sm text-white flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-rose-400" />
                         <span>{zone.zone_name}</span>
                       </h3>
                       <span
@@ -409,31 +421,32 @@ export function MapView({
                     <div className="space-y-2 text-xs">
                       <div>
                         <div className="flex justify-between items-center mb-1">
-                          <span className="text-slate-500 font-medium">Congestión estimada:</span>
-                          <strong className="text-slate-800 font-extrabold">{cong}%</strong>
+                          <span className="text-slate-400 font-medium">Congestión estimada:</span>
+                          <strong className="text-white font-black">{cong}%</strong>
                         </div>
-                        {/* Barra de progreso visual */}
-                        <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                        {/* Barra de progreso visual con gradiente moderno */}
+                        <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden p-0.5">
                           <div
                             className="h-full rounded-full transition-all duration-500"
                             style={{
                               width: `${Math.min(100, Math.max(5, cong))}%`,
                               backgroundColor: colors.border,
+                              boxShadow: `0 0 10px ${colors.border}`,
                             }}
                           ></div>
                         </div>
                       </div>
 
-                      <div className="flex justify-between items-center pt-1 border-t border-slate-100">
-                        <span className="text-slate-500 font-medium">Incidentes activos:</span>
-                        <span className="px-2 py-0.5 rounded-md font-bold text-xs bg-slate-100 text-slate-800">
+                      <div className="flex justify-between items-center pt-1.5 border-t border-white/[0.08]">
+                        <span className="text-slate-400 font-medium">Incidentes activos:</span>
+                        <span className="px-2 py-0.5 rounded-lg font-bold text-xs bg-white/10 text-white border border-white/10">
                           {zone.active_reports_count || 0} reportes
                         </span>
                       </div>
 
                       <div className="flex justify-between items-center text-[11px] text-slate-400">
                         <span>Estado:</span>
-                        <span className="font-semibold text-slate-600">{colors.label}</span>
+                        <span className="font-semibold text-slate-300">{colors.label}</span>
                       </div>
                     </div>
                   </div>
@@ -450,18 +463,18 @@ export function MapView({
             icon={getPoiIcon(poi.category)}
           >
             <Popup>
-              <div className="p-1 min-w-[220px] font-sans text-slate-900">
-                <span className="text-[10px] uppercase font-bold tracking-wider text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
+              <div className="p-1 min-w-[220px] font-sans">
+                <span className="text-[10px] uppercase font-extrabold tracking-wider text-rose-300 bg-rose-500/20 px-2.5 py-0.5 rounded-full border border-rose-500/30">
                   {poi.category}
                 </span>
-                <h4 className="font-black text-sm text-slate-900 mt-1.5">{poi.name}</h4>
+                <h4 className="font-black text-sm text-white mt-2">{poi.name}</h4>
                 {poi.description && (
-                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                  <p className="text-xs text-slate-300 mt-1 leading-relaxed">
                     {poi.description}
                   </p>
                 )}
-                <div className="mt-2.5 pt-1.5 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
-                  <span>Senda del Carnaval</span>
+                <div className="mt-2.5 pt-1.5 border-t border-white/10 flex items-center justify-between text-[11px] text-slate-400">
+                  <span className="text-amber-400/80 font-medium">Senda del Carnaval</span>
                   <span>{poi.latitude.toFixed(4)}, {poi.longitude.toFixed(4)}</span>
                 </div>
               </div>
@@ -477,32 +490,32 @@ export function MapView({
             icon={getReportIcon(report.ai_risk_level)}
           >
             <Popup>
-              <div className="p-1 min-w-[220px] font-sans text-slate-900">
-                <div className="flex items-center justify-between gap-2 border-b border-slate-200 pb-1.5 mb-1.5">
-                  <span className="text-[10px] uppercase font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
+              <div className="p-1 min-w-[220px] font-sans">
+                <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-1.5 mb-1.5">
+                  <span className="text-[10px] uppercase font-bold text-slate-300 bg-white/10 px-2 py-0.5 rounded-md border border-white/10">
                     {report.category}
                   </span>
                   <span
-                    className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                    className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${
                       report.ai_risk_level === 'Alto'
-                        ? 'bg-rose-100 text-rose-700'
+                        ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
                         : report.ai_risk_level === 'Medio'
-                        ? 'bg-amber-100 text-amber-700'
-                        : 'bg-emerald-100 text-emerald-700'
+                        ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                        : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
                     }`}
                   >
                     Riesgo {report.ai_risk_level || 'Bajo'}
                   </span>
                 </div>
-                <h4 className="font-black text-sm text-slate-900">{report.title}</h4>
+                <h4 className="font-black text-sm text-white">{report.title}</h4>
                 {report.description && (
-                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                  <p className="text-xs text-slate-300 mt-1 leading-relaxed">
                     {report.description}
                   </p>
                 )}
-                <div className="mt-2 pt-1.5 border-t border-slate-100 flex justify-between items-center text-[11px] text-slate-400">
-                  <span className="font-semibold text-slate-600">Estado: {report.status}</span>
-                  <span className="flex items-center gap-1">
+                <div className="mt-2.5 pt-1.5 border-t border-white/10 flex justify-between items-center text-[11px] text-slate-400">
+                  <span className="font-semibold text-slate-300">Estado: {report.status}</span>
+                  <span className="flex items-center gap-1 text-slate-400">
                     <Clock className="w-3 h-3" />
                     {new Date(report.created_at).toLocaleTimeString([], {
                       hour: '2-digit',
@@ -519,14 +532,14 @@ export function MapView({
         {selectedLocation && (
           <Marker
             position={[selectedLocation.lat, selectedLocation.lng]}
-            icon={createCustomIcon('#f59e0b', '📍', true)}
+            icon={createCustomIcon('linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)', '📍', true, 'rgba(251, 191, 36, 0.7)')}
           >
             <Popup>
-              <div className="text-xs p-1 font-sans text-slate-900">
-                <strong className="text-amber-600 block font-bold text-sm">
+              <div className="text-xs p-1 font-sans">
+                <strong className="text-amber-400 block font-black text-sm">
                   Ubicación Seleccionada
                 </strong>
-                <p className="text-slate-600 mt-1">
+                <p className="text-slate-300 mt-1">
                   Listo para registrar una incidencia ciudadana en este punto de la senda.
                 </p>
               </div>
@@ -539,3 +552,4 @@ export function MapView({
 }
 
 export default MapView;
+

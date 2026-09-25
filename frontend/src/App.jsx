@@ -88,11 +88,12 @@ export function App() {
   if (authLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-screen w-screen bg-slate-950 text-slate-100">
-        <div className="relative flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 shadow-xl shadow-rose-500/30 text-3xl animate-pulse">
+        <div className="relative flex items-center justify-center w-16 h-16 rounded-3xl bg-gradient-to-tr from-amber-400 via-fuchsia-600 to-violet-600 shadow-[0_0_35px_rgba(217,70,239,0.6)] border border-white/25 text-3xl animate-bounce">
           🎭
+          <span className="absolute inset-0 rounded-3xl bg-fuchsia-500/30 animate-ping"></span>
         </div>
-        <p className="text-xs font-semibold text-slate-400 mt-4 tracking-wider uppercase animate-pulse">
-          Cargando CarnavalIA...
+        <p className="text-xs font-black tracking-widest uppercase bg-gradient-to-r from-amber-400 via-rose-300 to-purple-400 bg-clip-text text-transparent mt-6">
+          Iniciando CarnavalIA...
         </p>
       </div>
     );
@@ -134,31 +135,31 @@ export function App() {
         <div className="absolute top-4 right-4 z-[900] flex flex-col sm:flex-row items-end sm:items-center gap-2">
           {/* Badge de Alertas Críticas */}
           {highRiskCount > 0 && (
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-rose-600/90 backdrop-blur-md text-white text-xs font-bold shadow-lg shadow-rose-600/30 border border-rose-400/30 animate-pulse">
-              <ShieldAlert className="w-4 h-4" />
-              <span>{highRiskCount} Alerta{highRiskCount > 1 ? 's' : ''} Crítica{highRiskCount > 1 ? 's' : ''} en la Senda</span>
+            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-600/90 backdrop-blur-2xl text-white text-xs font-black shadow-[0_0_20px_rgba(244,63,94,0.55)] border border-rose-400/40 animate-pulse">
+              <ShieldAlert className="w-4 h-4 text-amber-300" />
+              <span>{highRiskCount} Alerta{highRiskCount > 1 ? 's' : ''} Crítica{highRiskCount > 1 ? 's' : ''}</span>
             </div>
           )}
 
-          {/* Tarjeta de Resumen Rápido */}
-          <div className="flex items-center gap-3 px-3.5 py-1.5 rounded-xl bg-slate-900/90 backdrop-blur-md border border-slate-700/80 shadow-xl text-xs">
-            <div className="flex items-center gap-1.5 text-slate-300">
+          {/* Tarjeta Cápsula de Resumen Rápido */}
+          <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-slate-950/80 backdrop-blur-2xl border border-white/10 shadow-[0_12px_36px_rgba(0,0,0,0.6)] text-xs">
+            <div className="flex items-center gap-1.5 text-slate-200">
               <MapPin className="w-3.5 h-3.5 text-rose-400" />
-              <span><strong>{pois.length}</strong> Puntos</span>
+              <span><strong className="text-white font-black">{pois.length}</strong> Puntos</span>
             </div>
-            <span className="text-slate-700">•</span>
-            <div className="flex items-center gap-1.5 text-slate-300">
+            <span className="text-white/20">•</span>
+            <div className="flex items-center gap-1.5 text-slate-200">
               <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
-              <span><strong>{reports.length}</strong> Reportes</span>
+              <span><strong className="text-white font-black">{reports.length}</strong> Reportes</span>
             </div>
-            <span className="text-slate-700">•</span>
+            <span className="text-white/20">•</span>
             <button
               onClick={loadDashboardData}
               disabled={loading}
-              className="text-slate-400 hover:text-white transition p-0.5"
+              className="text-slate-400 hover:text-white transition p-1 hover:bg-white/10 rounded-full active:scale-95"
               title={`Actualizar datos (Última: ${lastUpdated.toLocaleTimeString()})`}
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-rose-400' : ''}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-fuchsia-400' : 'hover:text-amber-400'}`} />
             </button>
           </div>
         </div>

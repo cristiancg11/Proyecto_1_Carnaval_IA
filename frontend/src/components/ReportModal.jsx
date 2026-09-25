@@ -77,22 +77,25 @@ export function ReportModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
-      <div className="relative w-full max-w-lg bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-xl animate-fadeIn">
+      <div className="relative w-full max-w-lg bg-slate-900/80 backdrop-blur-2xl border border-white/15 rounded-3xl shadow-[0_24px_60px_-15px_rgba(0,0,0,0.8)] overflow-hidden">
+        {/* Línea neón superior */}
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-400 via-fuchsia-500 to-violet-600 shadow-[0_0_15px_rgba(217,70,239,0.7)]"></div>
+
         {/* Encabezado del Modal */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900/50">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-gradient-to-tr from-amber-500/20 to-rose-500/20 border border-amber-500/30 text-amber-400">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.08] bg-slate-950/40">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.25)]">
               <AlertTriangle className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-white">Reportar Incidencia</h2>
-              <p className="text-xs text-slate-400">Evaluada automáticamente con Inteligencia Artificial</p>
+              <h2 className="text-base font-black text-white">Reportar Incidencia</h2>
+              <p className="text-[11px] text-slate-400">Evaluada automáticamente con Inteligencia Artificial</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            className="p-2 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -101,31 +104,31 @@ export function ReportModal({
         {/* Formulario */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {error && (
-            <div className="p-3 text-xs rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300">
+            <div className="p-3.5 text-xs rounded-2xl bg-rose-500/15 border border-rose-500/40 text-rose-300 shadow-[0_0_15px_rgba(244,63,94,0.2)]">
               {error}
             </div>
           )}
 
           {successAiRisk && (
-            <div className="p-3 text-xs rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-emerald-400" />
+            <div className="p-3.5 text-xs rounded-2xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 flex items-center gap-2 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+              <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" />
               <span>¡Reporte registrado con éxito! Riesgo evaluado por IA: <strong>{successAiRisk}</strong></span>
             </div>
           )}
 
           {user && (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-800/60 border border-slate-700/60 text-xs text-slate-300">
-              <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-amber-500 to-rose-600 flex items-center justify-center text-[10px] font-black text-white shrink-0">
+            <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-white/[0.04] border border-white/10 text-xs text-slate-300">
+              <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-amber-400 via-rose-500 to-purple-600 flex items-center justify-center text-[10px] font-black text-white shrink-0">
                 {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
               </div>
               <span className="truncate">
-                Reportando como: <strong className="text-slate-200">{user.name}</strong> ({user.email})
+                Reportando como: <strong className="text-white font-bold">{user.name}</strong> ({user.email})
               </span>
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+            <label className="block text-xs font-bold text-slate-300 mb-1.5">
               Título del Incidente <span className="text-rose-400">*</span>
             </label>
             <input
@@ -134,18 +137,18 @@ export function ReportModal({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Ej: Embotellamiento de carrozas frente a la Plaza"
-              className="w-full px-3.5 py-2.5 text-sm bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500"
+              className="w-full px-4 py-2.5 text-xs sm:text-sm bg-white/[0.04] border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-4 focus:ring-fuchsia-500/20 focus:border-fuchsia-500 transition-all"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+            <label className="block text-xs font-bold text-slate-300 mb-1.5">
               Categoría
             </label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="w-full px-3.5 py-2.5 text-sm bg-slate-800/80 border border-slate-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500"
+              className="w-full px-4 py-2.5 text-xs sm:text-sm bg-slate-900 border border-white/10 rounded-2xl text-white focus:outline-none focus:ring-4 focus:ring-fuchsia-500/20 focus:border-fuchsia-500 transition-all"
             >
               {CATEGORIES.map((cat) => (
                 <option key={cat.value} value={cat.value} className="bg-slate-900">
@@ -156,7 +159,7 @@ export function ReportModal({
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+            <label className="block text-xs font-bold text-slate-300 mb-1.5">
               Descripción Adicional
             </label>
             <textarea
@@ -164,14 +167,14 @@ export function ReportModal({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Describe lo sucedido para que el análisis de IA evalúe la prioridad y riesgo..."
-              className="w-full px-3.5 py-2.5 text-sm bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/50 focus:border-rose-500 resize-none"
+              className="w-full px-4 py-2.5 text-xs sm:text-sm bg-white/[0.04] border border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:ring-4 focus:ring-fuchsia-500/20 focus:border-fuchsia-500 resize-none transition-all"
             />
           </div>
 
           {/* Coordenadas */}
-          <div className="grid grid-cols-2 gap-3 p-3 rounded-xl bg-slate-800/50 border border-slate-800">
+          <div className="grid grid-cols-2 gap-3 p-3.5 rounded-2xl bg-white/[0.03] border border-white/10">
             <div>
-              <label className="block text-[11px] font-medium text-slate-400 mb-1 flex items-center gap-1">
+              <label className="block text-[11px] font-bold text-slate-400 mb-1 flex items-center gap-1">
                 <MapPin className="w-3 h-3 text-amber-400" /> Latitud
               </label>
               <input
@@ -180,11 +183,11 @@ export function ReportModal({
                 required
                 value={latitude}
                 onChange={(e) => setLatitude(parseFloat(e.target.value))}
-                className="w-full px-2.5 py-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200"
+                className="w-full px-3 py-1.5 text-xs bg-slate-950 border border-white/10 rounded-xl text-slate-200 focus:outline-none focus:border-amber-400"
               />
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-slate-400 mb-1 flex items-center gap-1">
+              <label className="block text-[11px] font-bold text-slate-400 mb-1 flex items-center gap-1">
                 <MapPin className="w-3 h-3 text-amber-400" /> Longitud
               </label>
               <input
@@ -193,24 +196,24 @@ export function ReportModal({
                 required
                 value={longitude}
                 onChange={(e) => setLongitude(parseFloat(e.target.value))}
-                className="w-full px-2.5 py-1.5 text-xs bg-slate-900 border border-slate-700 rounded-lg text-slate-200"
+                className="w-full px-3 py-1.5 text-xs bg-slate-950 border border-white/10 rounded-xl text-slate-200 focus:outline-none focus:border-amber-400"
               />
             </div>
           </div>
 
-          {/* Botones de acción */}
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+          {/* Botones modernos de acción */}
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/[0.08]">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition"
+              className="px-5 py-2.5 text-xs font-bold text-slate-300 hover:text-white rounded-full bg-white/[0.04] hover:bg-white/[0.1] border border-white/10 transition active:scale-95"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex items-center gap-2 px-5 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-amber-500 via-rose-500 to-purple-600 hover:opacity-95 text-white shadow-lg shadow-rose-500/20 active:scale-95 disabled:opacity-50 transition"
+              className="flex items-center gap-2 px-6 py-2.5 text-xs font-black rounded-full bg-gradient-to-r from-violet-600 via-fuchsia-600 to-amber-500 hover:from-violet-500 hover:via-fuchsia-500 hover:to-amber-400 text-white shadow-[0_0_20px_rgba(217,70,239,0.5)] active:scale-95 disabled:opacity-50 transition-all duration-200 hover:-translate-y-0.5"
             >
               {loading ? (
                 <>
@@ -232,3 +235,4 @@ export function ReportModal({
 }
 
 export default ReportModal;
+
