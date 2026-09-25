@@ -3,10 +3,13 @@ import Header from './components/Header';
 import MapView from './components/MapView';
 import ReportModal from './components/ReportModal';
 import ChatbotDrawer from './components/ChatbotDrawer';
+import AuthModal from './components/AuthModal';
 import { api } from './services/api';
-import { RefreshCw, AlertCircle, ShieldAlert, Sparkles, MapPin, HeartPulse } from 'lucide-react';
+import { useAuth } from './context/AuthContext';
+import { RefreshCw, ShieldAlert, MapPin } from 'lucide-react';
 
 export function App() {
+  const { isAuthenticated } = useAuth();
   const [pois, setPois] = useState([]);
   const [reports, setReports] = useState([]);
   const [zones, setZones] = useState([]);
@@ -14,6 +17,9 @@ export function App() {
   const [loading, setLoading] = useState(true);
   const [chatOpen, setChatOpen] = useState(false);
   const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authInitialTab, setAuthInitialTab] = useState('login');
+  const [authPromptMessage, setAuthPromptMessage] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
@@ -64,6 +70,12 @@ export function App() {
   // Manejar selección de coordenadas al hacer clic en el mapa
   const handleSelectCoordinates = (lat, lng) => {
     setSelectedLocation({ lat, lng });
+    if (!isAuthenticated) {
+      setAuthPromptMessage('Debes iniciar sesión para reportar un incidente ciudadano');
+      setAuthInitialTab('login');
+      setAuthModalOpen(true);
+      return;
+    }
     setReportModalOpen(true);
   };
 
@@ -85,8 +97,20 @@ export function App() {
         isServerHealthy={isServerHealthy}
         onOpenChat={() => setChatOpen(!chatOpen)}
         onOpenReportModal={() => {
+          if (!isAuthenticated) {
+            setSelectedLocation(null);
+            setAuthPromptMessage('Debes iniciar sesión para reportar un incidente ciudadano');
+            setAuthInitialTab('login');
+            setAuthModalOpen(true);
+            return;
+          }
           setSelectedLocation(null);
           setReportModalOpen(true);
+        }}
+        onOpenAuth={(tab = 'login') => {
+          setAuthPromptMessage(null);
+          setAuthInitialTab(tab);
+          setAuthModalOpen(true);
         }}
         chatOpen={chatOpen}
         reportsCount={reports.length}
@@ -153,6 +177,22 @@ export function App() {
           }}
           initialCoordinates={selectedLocation}
           onReportCreated={handleReportCreated}
+        />
+
+        {/* 5. Modal de Autenticación (Login / Registro) */}
+        <AuthModal
+          isOpen={authModalOpen}
+          onClose={() => {
+            setAuthModalOpen(false);
+            setAuthPromptMessage(null);
+          }}
+          initialTab={authInitialTab}
+          promptMessage={authPromptMessage}
+          onSuccess={() => {
+            if (authPromptMessage) {
+              setReportModalOpen(true);
+            }
+          }}
         />
       </main>
     </div>

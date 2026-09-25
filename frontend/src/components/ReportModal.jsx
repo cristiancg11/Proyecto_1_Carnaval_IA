@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, AlertTriangle, Send, MapPin, Sparkles, Loader2 } from 'lucide-react';
+import { X, AlertTriangle, Send, MapPin, Sparkles, Loader2, User } from 'lucide-react';
 import { api } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const CATEGORIES = [
   { value: 'Aglomeracion', label: '👥 Aglomeración Masiva' },
@@ -17,6 +18,7 @@ export function ReportModal({
   initialCoordinates,
   onReportCreated,
 }) {
+  const { user } = useAuth();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('Aglomeracion');
@@ -108,6 +110,17 @@ export function ReportModal({
             <div className="p-3 text-xs rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-emerald-400" />
               <span>¡Reporte registrado con éxito! Riesgo evaluado por IA: <strong>{successAiRisk}</strong></span>
+            </div>
+          )}
+
+          {user && (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-800/60 border border-slate-700/60 text-xs text-slate-300">
+              <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-amber-500 to-rose-600 flex items-center justify-center text-[10px] font-black text-white shrink-0">
+                {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+              </div>
+              <span className="truncate">
+                Reportando como: <strong className="text-slate-200">{user.name}</strong> ({user.email})
+              </span>
             </div>
           )}
 
