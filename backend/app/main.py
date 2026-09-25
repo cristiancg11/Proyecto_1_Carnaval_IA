@@ -16,6 +16,7 @@ from app.db.seed import seed_points_of_interest
 from app.api.v1.endpoints.reports import router as reports_router
 from app.api.v1.endpoints.points_of_interest import router as pois_router
 from app.api.v1.endpoints.chat import router as chat_router
+from app.api.v1.endpoints.zones import router as zones_router
 
 
 @asynccontextmanager
@@ -67,6 +68,12 @@ app.include_router(
     chat_router,
     prefix="/api/v1/chat",
     tags=["Chatbot IA"]
+)
+
+app.include_router(
+    zones_router,
+    prefix="/api/v1/zones",
+    tags=["Zonas de Riesgo"]
 )
 
 
