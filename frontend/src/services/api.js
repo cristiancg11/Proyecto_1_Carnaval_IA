@@ -50,15 +50,21 @@ export const api = {
     return response.data;
   },
 
-  // Chatbot IA (Gemini 2.5 Flash)
-  sendChatMessage: async ({ message, userLatitude = null, userLongitude = null }) => {
+  // Chatbot IA (Gemini 2.5 Flash con RAG)
+  sendChatMessage: async ({ message, userLatitude = null, userLongitude = null, userLat = null, userLng = null, selectedDay = null }) => {
+    const lat = userLat !== null && userLat !== undefined ? userLat : userLatitude;
+    const lng = userLng !== null && userLng !== undefined ? userLng : userLongitude;
     const response = await apiClient.post('/chat/', {
       message,
-      user_latitude: userLatitude,
-      user_longitude: userLongitude,
+      user_latitude: lat,
+      user_longitude: lng,
+      user_lat: lat,
+      user_lng: lng,
+      selected_day: selectedDay,
     });
     return response.data;
   },
 };
 
 export default api;
+

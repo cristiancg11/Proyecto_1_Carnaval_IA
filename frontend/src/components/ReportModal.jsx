@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, AlertTriangle, Sparkles, Send, Loader2 } from 'lucide-react';
+import { X, AlertTriangle, Sparkles, Send, Loader2, MapPin } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 

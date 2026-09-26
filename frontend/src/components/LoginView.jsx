@@ -14,14 +14,17 @@ import {
   ShieldAlert,
   Bot,
   CheckCircle2,
+  Zap,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import InstallPwaPrompt from './InstallPwaPrompt';
+import { ChatbotDrawer } from './ChatbotDrawer';
 
 export function LoginView() {
   const { login, register } = useAuth();
   const [activeTab, setActiveTab] = useState('login'); // 'login' | 'register'
   const [showPassword, setShowPassword] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
 
   // Estados de los campos
   const [name, setName] = useState('');
@@ -32,6 +35,21 @@ export function LoginView() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
+
+  const handleQuickDemoLogin = async () => {
+    setEmail('juan@pasto.gov.co');
+    setPassword('Password123!');
+    setLoading(true);
+    setError(null);
+    try {
+      await login('juan@pasto.gov.co', 'Password123!');
+    } catch (err) {
+      console.error(err);
+      setError('Error al ingresar con la cuenta demo.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleTabSwitch = (tab) => {
     setActiveTab(tab);
@@ -110,9 +128,22 @@ export function LoginView() {
           </div>
         </div>
 
-        <span className="px-3.5 py-1 rounded-full text-xs font-black bg-rose-500/15 text-rose-300 border border-rose-500/30 shadow-[0_0_15px_rgba(244,63,94,0.2)]">
-          Pasto 2026
-        </span>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <button
+            type="button"
+            onClick={() => setChatOpen(true)}
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-black bg-gradient-to-r from-violet-600 via-fuchsia-600 to-amber-500 hover:from-violet-500 hover:via-fuchsia-500 hover:to-amber-400 text-white shadow-[0_0_20px_rgba(217,70,239,0.5)] transition-all hover:scale-105 active:scale-95 cursor-pointer"
+            title="Abrir Chatbot IA"
+          >
+            <Bot className="w-4 h-4 animate-bounce" />
+            <span className="hidden sm:inline">Preguntar a la IA</span>
+            <span className="sm:hidden">Chat IA</span>
+            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+          </button>
+          <span className="px-3.5 py-1 rounded-full text-xs font-black bg-rose-500/15 text-rose-300 border border-rose-500/30 shadow-[0_0_15px_rgba(244,63,94,0.2)]">
+            Pasto 2026
+          </span>
+        </div>
       </header>
 
       {/* Contenido principal: 2 columnas en desktop */}
@@ -158,15 +189,29 @@ export function LoginView() {
                 </p>
               </div>
 
-              <div className="p-4 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl text-left hover:border-white/20 transition-all duration-300 hover:-translate-y-1 shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
-                <div className="p-2.5 rounded-2xl bg-violet-500/15 border border-violet-500/30 text-violet-300 w-fit mb-3 shadow-[0_0_15px_rgba(139,92,246,0.25)]">
-                  <Bot className="w-4 h-4" />
+              {/* Botón interactivo para probar el Chatbot IA directamente */}
+              <button
+                type="button"
+                onClick={() => setChatOpen(true)}
+                className="p-4 rounded-3xl bg-slate-900/60 border border-violet-500/40 hover:border-violet-400 backdrop-blur-xl text-left hover:bg-slate-900/90 transition-all duration-300 hover:-translate-y-1 shadow-[0_8px_24px_rgba(139,92,246,0.25)] group cursor-pointer w-full ring-1 ring-violet-500/20"
+                title="Abrir Chatbot IA"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="p-2.5 rounded-2xl bg-violet-500/20 border border-violet-500/40 text-violet-300 shadow-[0_0_15px_rgba(139,92,246,0.35)] group-hover:scale-110 transition-transform">
+                    <Bot className="w-4 h-4" />
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/30 animate-pulse">
+                    ¡Probar ahora! ✨
+                  </span>
                 </div>
-                <h3 className="text-xs font-black text-white">Chatbot IA</h3>
+                <h3 className="text-xs font-black text-white group-hover:text-fuchsia-300 transition-colors flex items-center gap-1.5">
+                  <span>Chatbot IA</span>
+                  <Sparkles className="w-3 h-3 text-amber-300" />
+                </h3>
                 <p className="text-[11px] text-slate-400 mt-1 leading-normal">
-                  Guía interactiva sobre eventos y rutas.
+                  RAG con Gemini 2.5 Flash y contexto en vivo. Toca para chatear.
                 </p>
-              </div>
+              </button>
             </div>
           </div>
 
@@ -320,6 +365,20 @@ export function LoginView() {
                     </>
                   )}
                 </button>
+
+                {/* Acceso Rápido Demo (1 Clic) */}
+                {activeTab === 'login' && (
+                  <button
+                    type="button"
+                    onClick={handleQuickDemoLogin}
+                    disabled={loading}
+                    className="w-full py-2.5 px-4 rounded-full font-bold text-xs text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 hover:border-amber-500/50 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-sm hover:scale-[1.01] active:scale-95"
+                    title="Ingresar directamente con la cuenta oficial de demostración"
+                  >
+                    <Zap className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                    <span>⚡ Acceso Rápido Demo (juan@pasto.gov.co)</span>
+                  </button>
+                )}
               </form>
 
               {/* Alternar pestañas en el pie */}
@@ -357,6 +416,14 @@ export function LoginView() {
       <footer className="w-full py-4 text-center text-xs text-slate-500 border-t border-white/[0.06] bg-slate-950/80 z-10">
         Carnaval de Negros y Blancos de Pasto • Patrimonio Cultural Inmaterial de la Humanidad (UNESCO)
       </footer>
+
+      {/* Asistente IA interactivo disponible desde la pantalla de bienvenida */}
+      <ChatbotDrawer
+        isOpen={chatOpen}
+        onClose={() => setChatOpen(false)}
+        userLocation={{ lat: 1.2136, lng: -77.2811 }}
+        selectedDay="06-ene"
+      />
 
       {/* Prompt PWA flotante */}
       <InstallPwaPrompt />

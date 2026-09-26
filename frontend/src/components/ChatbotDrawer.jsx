@@ -10,26 +10,30 @@ import {
   Database,
   Loader2,
   RefreshCw,
+  Navigation,
 } from 'lucide-react';
 import { api } from '../services/api';
 
 const SUGGESTED_QUESTIONS = [
+  '¿Qué va a haber hoy 4 de enero?',
+  '¿Dónde comer buen cuy asado o empanadas de añejo?',
   '¿Dónde queda el puesto de salud más cercano?',
-  '¿Cómo está la seguridad y congestión en la Plaza del Carnaval?',
-  '¿Dónde hay baños públicos y puntos de encuentro?',
-  '¿Qué reportes recientes hay en la Senda del Carnaval?',
+  '¿Qué calles están cerradas hoy por desfile?',
 ];
 
 export function ChatbotDrawer({
   isOpen,
   onClose,
   userLocation,
+  userGps,
+  selectedDay,
+  setNavRoute,
 }) {
   const [messages, setMessages] = useState([
     {
       id: 1,
       sender: 'bot',
-      text: '¡Hola, paisano! 🎉 Te doy la bienvenida al Carnaval de Negros y Blancos de Pasto. Soy tu Asistente Virtual Oficial con Inteligencia Artificial. ¿En qué te puedo orientar hoy sobre puestos de salud, rutas o seguridad?',
+      text: '¡Hola, paisano! 🎉 Te doy la bienvenida al Carnaval de Negros y Blancos de Pasto. Soy tu Asistente Virtual Oficial con Inteligencia Artificial. ¿En qué te puedo orientar hoy sobre el desfile de hoy, rutas cerradas, gastronomía nariñense o puestos de salud?',
       sources: ['Base de Conocimiento Oficial del Carnaval de Pasto'],
       timestamp: new Date(),
     },
@@ -67,21 +71,53 @@ export function ChatbotDrawer({
     setLoading(true);
 
     try {
+      const activeLat = includeLocation && userGps ? userGps.lat : (userLocation ? userLocation.lat : 1.2136);
+      const activeLng = includeLocation && userGps ? userGps.lng : (userLocation ? userLocation.lng : -77.2811);
+
       const response = await api.sendChatMessage({
         message: userMsg.text,
-        userLatitude: includeLocation && userLocation ? userLocation.lat : 1.2136,
-        userLongitude: includeLocation && userLocation ? userLocation.lng : -77.2811,
+        userLatitude: activeLat,
+        userLongitude: activeLng,
+        userLat: activeLat,
+        userLng: activeLng,
+        selectedDay: selectedDay || '06-ene',
       });
+
+      const replyText = response.reply || response.response;
 
       const botMsg = {
         id: Date.now() + 1,
         sender: 'bot',
-        text: response.response,
+        text: replyText,
         sources: response.sources_used || [],
         timestamp: new Date(),
       };
 
       setMessages((prev) => [...prev, botMsg]);
+
+      // Si data.action existe y data.action.type === 'ROUTE'
+      if (response.action && response.action.type === 'ROUTE') {
+        const targetCoords = response.action.target_coords;
+        const targetName = response.action.target_name;
+
+        if (setNavRoute && targetCoords) {
+          setNavRoute({
+            targetName: targetName,
+            startCoords: [activeLat, activeLng],
+            targetCoords: targetCoords,
+          });
+        }
+
+        const routeNoticeMsg = {
+          id: Date.now() + 2,
+          sender: 'bot',
+          isRouteNotice: true,
+          text: `📍 Ruta trazada en el mapa hacia ${targetName}`,
+          timestamp: new Date(),
+        };
+
+        setMessages((prev) => [...prev, routeNoticeMsg]);
+      }
     } catch (error) {
       console.error('Error al consultar chatbot:', error);
       const errorMsg = {
@@ -99,7 +135,16 @@ export function ChatbotDrawer({
   };
 
   return (
-    <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-[460px] lg:w-[490px] bg-slate-950/85 backdrop-blur-3xl border-l border-white/10 shadow-[0_0_60px_rgba(0,0,0,0.8)] flex flex-col transition-all duration-300 ease-in-out animate-slideLeft">
+    <div className="fixed inset-0 z-[9999] overflow-hidden pointer-events-auto">
+      {/* Backdrop oscuro translúcido con desenfoque para enfocar el chat */}
+      <div
+        className="fixed inset-0 bg-slate-950/75 backdrop-blur-sm transition-opacity duration-300 animate-fadeIn cursor-pointer"
+        onClick={onClose}
+        aria-label="Cerrar Asistente"
+      />
+
+      {/* Panel Lateral Deslizante */}
+      <div className="fixed inset-y-0 right-0 z-10 w-full sm:w-[480px] lg:w-[510px] bg-slate-950/95 backdrop-blur-3xl border-l border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.9)] flex flex-col transition-all duration-300 ease-in-out animate-slideLeft">
       {/* Encabezado del Chat */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.08] bg-slate-950/60 backdrop-blur-2xl">
         <div className="flex items-center gap-3">
@@ -128,12 +173,26 @@ export function ChatbotDrawer({
         </button>
       </div>
 
-      {/* Switch de Geolocalización para contextualizar en cápsula */}
-      <div className="px-5 py-2.5 bg-white/[0.02] border-b border-white/[0.06] flex items-center justify-between text-xs text-slate-300">
-        <div className="flex items-center gap-1.5 truncate">
-          <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-          <span className="truncate">Pasto ({userLocation ? `${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}` : 'Plaza de Nariño'})</span>
+      {/* Switch de Geolocalización y Día Activo del Carnaval */}
+      <div className="px-5 py-2.5 bg-white/[0.02] border-b border-white/[0.06] flex items-center justify-between text-xs text-slate-300 flex-wrap gap-2">
+        <div className="flex items-center gap-2 truncate">
+          <div className="flex items-center gap-1.5 truncate">
+            <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span className="truncate">
+              {userGps
+                ? `GPS: ${userGps.lat.toFixed(4)}, ${userGps.lng.toFixed(4)}`
+                : userLocation
+                ? `Pasto (${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)})`
+                : 'Pasto (Plaza de Nariño)'}
+            </span>
+          </div>
+          {selectedDay && (
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/30">
+              📅 {selectedDay}
+            </span>
+          )}
         </div>
+
         <label className="flex items-center gap-2 cursor-pointer select-none shrink-0 bg-white/[0.04] px-2.5 py-1 rounded-full border border-white/10 hover:border-white/20 transition">
           <input
             type="checkbox"
@@ -158,11 +217,16 @@ export function ChatbotDrawer({
                   ? 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-amber-500 text-white rounded-br-sm shadow-[0_4px_20px_rgba(217,70,239,0.35)]'
                   : msg.isError
                   ? 'bg-rose-950/40 border border-rose-800/50 text-rose-200 rounded-bl-sm'
+                  : msg.isRouteNotice
+                  ? 'bg-blue-950/70 border border-blue-400/50 text-blue-200 rounded-bl-sm shadow-[0_0_20px_rgba(37,99,235,0.35)] font-semibold'
                   : 'bg-white/[0.05] border border-white/10 backdrop-blur-xl text-slate-100 rounded-bl-sm shadow-[0_4px_16px_rgba(0,0,0,0.2)]'
               }`}
             >
               {/* Contenido del mensaje con saltos de línea */}
-              <div className="whitespace-pre-line">{msg.text}</div>
+              <div className="flex items-start gap-2">
+                {msg.isRouteNotice && <Navigation className="w-3.5 h-3.5 text-blue-400 shrink-0 mt-0.5" />}
+                <div className="whitespace-pre-line flex-1">{msg.text}</div>
+              </div>
 
               {/* Fuentes auditables (sources_used) */}
               {msg.sources && msg.sources.length > 0 && (
@@ -190,9 +254,14 @@ export function ChatbotDrawer({
 
         {loading && (
           <div className="flex items-start gap-2">
-            <div className="bg-white/[0.05] border border-white/10 backdrop-blur-xl text-slate-300 rounded-3xl rounded-bl-sm px-4 py-3 text-xs flex items-center gap-2.5">
-              <Loader2 className="w-4 h-4 animate-spin text-fuchsia-400" />
-              <span>El Asistente está consultando la senda y analizando la base de datos...</span>
+            <div className="bg-white/[0.05] border border-fuchsia-500/30 backdrop-blur-xl text-slate-200 rounded-3xl rounded-bl-sm px-4 py-3 text-xs flex items-center gap-2.5 shadow-[0_0_20px_rgba(217,70,239,0.25)]">
+              <Loader2 className="w-4 h-4 animate-spin text-fuchsia-400 shrink-0" />
+              <div className="space-y-0.5">
+                <span className="font-bold text-white block">Consultando datos en tiempo real de Pasto con Gemini IA...</span>
+                <span className="text-[10px] text-slate-400 block">
+                  Analizando rutas oficiales, cierres de vías ({selectedDay || '06-ene'}) y restaurantes típicos
+                </span>
+              </div>
             </div>
           </div>
         )}
@@ -239,11 +308,11 @@ export function ChatbotDrawer({
           type="submit"
           disabled={!inputMessage.trim() || loading}
           className="p-3 rounded-full bg-gradient-to-r from-violet-600 via-fuchsia-600 to-amber-500 hover:from-violet-500 hover:via-fuchsia-500 hover:to-amber-400 text-white shadow-[0_0_20px_rgba(217,70,239,0.5)] active:scale-95 disabled:opacity-40 transition-all duration-200 hover:-translate-y-0.5 shrink-0"
-          title="Enviar consulta"
         >
           <Send className="w-4 h-4" />
         </button>
       </form>
+      </div>
     </div>
   );
 }

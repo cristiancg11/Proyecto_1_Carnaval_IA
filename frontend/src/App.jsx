@@ -7,7 +7,7 @@ import InstallPwaPrompt from './components/InstallPwaPrompt';
 import LoginView from './components/LoginView';
 import { api } from './services/api';
 import { useAuth } from './context/AuthContext';
-import { RefreshCw, ShieldAlert, MapPin } from 'lucide-react';
+import { RefreshCw, ShieldAlert, MapPin, Bot, Sparkles } from 'lucide-react';
 
 export function App() {
   const { isAuthenticated, loading: authLoading } = useAuth();
@@ -19,6 +19,9 @@ export function App() {
   const [chatOpen, setChatOpen] = useState(false);
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
+  const [selectedDay, setSelectedDay] = useState('06-ene');
+  const [userGps, setUserGps] = useState(null);
+  const [navRoute, setNavRoute] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
   // Carga sincronizada de datos desde el backend
@@ -129,6 +132,11 @@ export function App() {
           zones={zones}
           onSelectCoordinates={handleSelectCoordinates}
           selectedLocation={selectedLocation}
+          selectedDay={selectedDay}
+          onSelectDay={setSelectedDay}
+          onUserLocationChange={setUserGps}
+          navRoute={navRoute}
+          setNavRoute={setNavRoute}
         />
 
         {/* Panel Superior Flotante: Métricas en Vivo */}
@@ -164,12 +172,22 @@ export function App() {
           </div>
         </div>
 
-        {/* 3. Panel Lateral Flotante del Chatbot IA */}
-        <ChatbotDrawer
-          isOpen={chatOpen}
-          onClose={() => setChatOpen(false)}
-          userLocation={selectedLocation || { lat: 1.2136, lng: -77.2811 }}
-        />
+        {/* Botón Flotante de Acceso Rápido al Asistente IA (FAB) */}
+        {!chatOpen && (
+          <button
+            type="button"
+            onClick={() => setChatOpen(true)}
+            className="absolute bottom-6 left-1/2 -translate-x-1/2 sm:translate-x-0 sm:left-auto sm:right-24 z-[1000] flex items-center gap-2.5 px-5 py-3 rounded-full bg-gradient-to-r from-violet-600 via-fuchsia-600 to-amber-500 hover:from-violet-500 hover:via-fuchsia-500 hover:to-amber-400 text-white font-black text-xs sm:text-sm shadow-[0_0_30px_rgba(217,70,239,0.7)] hover:shadow-[0_0_40px_rgba(217,70,239,0.95)] border border-white/30 transition-all duration-300 hover:scale-105 active:scale-95 group select-none pointer-events-auto"
+            title="Abrir Asistente Virtual con IA (Gemini 2.5 Flash)"
+          >
+            <div className="relative flex items-center justify-center w-6 h-6 rounded-full bg-white/20">
+              <Bot className="w-4 h-4 animate-bounce" />
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+            </div>
+            <span>Preguntar a la IA</span>
+            <Sparkles className="w-4 h-4 text-amber-300 group-hover:rotate-12 transition-transform" />
+          </button>
+        )}
 
         {/* 4. Modal para Registro de Reportes */}
         <ReportModal
@@ -185,6 +203,16 @@ export function App() {
         {/* 5. Prompt para Instalar PWA */}
         <InstallPwaPrompt />
       </main>
+
+      {/* 3. Panel Lateral Flotante del Chatbot IA (Nivel Raíz con z-[9999]) */}
+      <ChatbotDrawer
+        isOpen={chatOpen}
+        onClose={() => setChatOpen(false)}
+        userLocation={selectedLocation || userGps || { lat: 1.2136, lng: -77.2811 }}
+        userGps={userGps}
+        selectedDay={selectedDay}
+        setNavRoute={setNavRoute}
+      />
     </div>
   );
 }
