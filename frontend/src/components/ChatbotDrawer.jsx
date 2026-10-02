@@ -15,10 +15,10 @@ import {
 import { api } from '../services/api';
 
 const SUGGESTED_QUESTIONS = [
-  '¿Qué va a haber hoy 4 de enero?',
-  '¿Dónde comer buen cuy asado o empanadas de añejo?',
-  '¿Dónde queda el puesto de salud más cercano?',
-  '¿Qué calles están cerradas hoy por desfile?',
+  '¿Qué hay el 6 de enero en el desfile magno?',
+  '¿Cómo llego a Cuyquer en Mijitayo?',
+  '¿Qué se celebra el 4 de enero con la Familia Castañeda?',
+  '¿Dónde queda El Rincón del Cuy?',
 ];
 
 export function ChatbotDrawer({
@@ -27,6 +27,8 @@ export function ChatbotDrawer({
   userLocation,
   userGps,
   selectedDay,
+  currentCarnivalDay,
+  setCurrentCarnivalDay,
   setNavRoute,
 }) {
   const [messages, setMessages] = useState([
@@ -74,13 +76,14 @@ export function ChatbotDrawer({
       const activeLat = includeLocation && userGps ? userGps.lat : (userLocation ? userLocation.lat : 1.2136);
       const activeLng = includeLocation && userGps ? userGps.lng : (userLocation ? userLocation.lng : -77.2811);
 
+      const activeDay = currentCarnivalDay || selectedDay || '06-ene';
       const response = await api.sendChatMessage({
         message: userMsg.text,
         userLatitude: activeLat,
         userLongitude: activeLng,
         userLat: activeLat,
         userLng: activeLng,
-        selectedDay: selectedDay || '06-ene',
+        selectedDay: activeDay,
       });
 
       const replyText = response.reply || response.response;
@@ -95,7 +98,27 @@ export function ChatbotDrawer({
 
       setMessages((prev) => [...prev, botMsg]);
 
-      // Si data.action existe y data.action.type === 'ROUTE'
+      // 1. Si data.action existe y data.action.type === 'SET_DAY'
+      if (response.action && response.action.type === 'SET_DAY') {
+        const dayKey = response.action.day_key;
+        const eventTitle = response.action.event_title || dayKey;
+
+        if (setCurrentCarnivalDay && dayKey) {
+          setCurrentCarnivalDay(dayKey);
+        }
+
+        const dayNoticeMsg = {
+          id: Date.now() + 2,
+          sender: 'bot',
+          isDayNotice: true,
+          text: `🎭 Mapa actualizado para: ${eventTitle}`,
+          timestamp: new Date(),
+        };
+
+        setMessages((prev) => [...prev, dayNoticeMsg]);
+      }
+
+      // 2. Si data.action existe y data.action.type === 'ROUTE'
       if (response.action && response.action.type === 'ROUTE') {
         const targetCoords = response.action.target_coords;
         const targetName = response.action.target_name;
@@ -109,7 +132,7 @@ export function ChatbotDrawer({
         }
 
         const routeNoticeMsg = {
-          id: Date.now() + 2,
+          id: Date.now() + 3,
           sender: 'bot',
           isRouteNotice: true,
           text: `📍 Ruta trazada en el mapa hacia ${targetName}`,
@@ -143,12 +166,12 @@ export function ChatbotDrawer({
         aria-label="Cerrar Asistente"
       />
 
-      {/* Panel Lateral Deslizante */}
-      <div className="fixed inset-y-0 right-0 z-10 w-full sm:w-[480px] lg:w-[510px] bg-slate-950/95 backdrop-blur-3xl border-l border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.9)] flex flex-col transition-all duration-300 ease-in-out animate-slideLeft">
+      {/* Panel Lateral Deslizante en Vidrio Esmerilado */}
+      <div className="fixed inset-y-0 right-0 z-10 w-full sm:w-[480px] lg:w-[510px] backdrop-blur-lg bg-slate-900/85 border-l border-slate-800/80 shadow-[0_0_80px_rgba(0,0,0,0.9)] flex flex-col transition-all duration-300 ease-in-out animate-slideLeft">
       {/* Encabezado del Chat */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.08] bg-slate-950/60 backdrop-blur-2xl">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-slate-950/60 backdrop-blur-2xl">
         <div className="flex items-center gap-3">
-          <div className="relative flex items-center justify-center w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-500 via-fuchsia-600 to-violet-600 text-white shadow-[0_0_20px_rgba(217,70,239,0.5)] border border-white/20">
+          <div className="relative flex items-center justify-center w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-400 via-rose-500 to-violet-600 text-white shadow-lg shadow-pink-500/25 border border-white/20">
             <Bot className="w-5 h-5" />
             <span className="absolute -bottom-0.5 -right-0.5 flex h-3 w-3">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -157,16 +180,20 @@ export function ChatbotDrawer({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="font-black text-sm text-white">Asistente IA del Carnaval</h3>
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <h3 className="font-black text-sm text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-pink-400 to-cyan-300">
+                Asistente IA del Carnaval
+              </h3>
+              <span className="px-2 py-0.5 text-[9px] font-black uppercase rounded-full centenary-badge text-amber-300">
+                1927 - 2027
+              </span>
             </div>
-            <p className="text-[11px] text-slate-400">Gemini 2.5 Flash • Contexto en tiempo real</p>
+            <p className="text-[11px] text-slate-300">Rumbo al Centenario • Gemini IA en vivo</p>
           </div>
         </div>
 
         <button
           onClick={onClose}
-          className="p-2 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition"
+          className="p-2 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition active:scale-95"
           title="Cerrar Asistente"
         >
           <X className="w-5 h-5" />
@@ -174,7 +201,7 @@ export function ChatbotDrawer({
       </div>
 
       {/* Switch de Geolocalización y Día Activo del Carnaval */}
-      <div className="px-5 py-2.5 bg-white/[0.02] border-b border-white/[0.06] flex items-center justify-between text-xs text-slate-300 flex-wrap gap-2">
+      <div className="px-5 py-2.5 bg-slate-950/40 border-b border-white/[0.06] flex items-center justify-between text-xs text-slate-300 flex-wrap gap-2">
         <div className="flex items-center gap-2 truncate">
           <div className="flex items-center gap-1.5 truncate">
             <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
@@ -187,18 +214,18 @@ export function ChatbotDrawer({
             </span>
           </div>
           {selectedDay && (
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/30">
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">
               📅 {selectedDay}
             </span>
           )}
         </div>
 
-        <label className="flex items-center gap-2 cursor-pointer select-none shrink-0 bg-white/[0.04] px-2.5 py-1 rounded-full border border-white/10 hover:border-white/20 transition">
+        <label className="flex items-center gap-2 cursor-pointer select-none shrink-0 bg-white/[0.04] px-2.5 py-1 rounded-full border border-white/10 hover:border-pink-500/30 transition">
           <input
             type="checkbox"
             checked={includeLocation}
             onChange={(e) => setIncludeLocation(e.target.checked)}
-            className="rounded bg-slate-800 border-white/20 text-fuchsia-500 focus:ring-fuchsia-500 text-xs"
+            className="rounded bg-slate-800 border-white/20 text-pink-500 focus:ring-pink-500 text-xs"
           />
           <span className="text-[11px] text-slate-300 font-bold">Proximidad</span>
         </label>
@@ -214,18 +241,21 @@ export function ChatbotDrawer({
             <div
               className={`max-w-[88%] rounded-3xl px-4 py-3 text-xs sm:text-[13px] leading-relaxed shadow-sm ${
                 msg.sender === 'user'
-                  ? 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-amber-500 text-white rounded-br-sm shadow-[0_4px_20px_rgba(217,70,239,0.35)]'
+                  ? 'bg-gradient-to-r from-amber-500 via-pink-500 to-cyan-500 text-white rounded-br-sm shadow-md shadow-pink-500/25'
                   : msg.isError
-                  ? 'bg-rose-950/40 border border-rose-800/50 text-rose-200 rounded-bl-sm'
+                  ? 'bg-rose-950/60 border border-rose-500/40 text-rose-200 rounded-bl-sm'
+                  : msg.isDayNotice
+                  ? 'bg-gradient-to-r from-pink-950/80 to-purple-950/80 border border-pink-400/60 text-pink-200 rounded-bl-sm shadow-md shadow-pink-500/20 font-semibold'
                   : msg.isRouteNotice
-                  ? 'bg-blue-950/70 border border-blue-400/50 text-blue-200 rounded-bl-sm shadow-[0_0_20px_rgba(37,99,235,0.35)] font-semibold'
-                  : 'bg-white/[0.05] border border-white/10 backdrop-blur-xl text-slate-100 rounded-bl-sm shadow-[0_4px_16px_rgba(0,0,0,0.2)]'
+                  ? 'bg-blue-950/70 border border-blue-400/50 text-blue-200 rounded-bl-sm shadow-md shadow-blue-500/20 font-semibold'
+                  : 'backdrop-blur-md bg-slate-900/80 border border-white/10 text-slate-100 rounded-bl-sm shadow-md'
               }`}
             >
               {/* Contenido del mensaje con saltos de línea */}
               <div className="flex items-start gap-2">
                 {msg.isRouteNotice && <Navigation className="w-3.5 h-3.5 text-blue-400 shrink-0 mt-0.5" />}
-                <div className="whitespace-pre-line flex-1">{msg.text}</div>
+                {msg.isDayNotice && <span className="text-sm shrink-0">🎭</span>}
+                <div className="whitespace-pre-line flex-1 text-slate-100">{msg.text}</div>
               </div>
 
               {/* Fuentes auditables (sources_used) */}
@@ -246,7 +276,7 @@ export function ChatbotDrawer({
               )}
             </div>
 
-            <span className="text-[10px] text-slate-500 mt-1 px-2 font-medium">
+            <span className="text-[10px] text-slate-400 mt-1 px-2 font-medium">
               {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </span>
           </div>
@@ -254,11 +284,11 @@ export function ChatbotDrawer({
 
         {loading && (
           <div className="flex items-start gap-2">
-            <div className="bg-white/[0.05] border border-fuchsia-500/30 backdrop-blur-xl text-slate-200 rounded-3xl rounded-bl-sm px-4 py-3 text-xs flex items-center gap-2.5 shadow-[0_0_20px_rgba(217,70,239,0.25)]">
-              <Loader2 className="w-4 h-4 animate-spin text-fuchsia-400 shrink-0" />
+            <div className="backdrop-blur-md bg-slate-900/80 border border-pink-500/40 text-slate-200 rounded-3xl rounded-bl-sm px-4 py-3 text-xs flex items-center gap-2.5 shadow-lg shadow-pink-500/20">
+              <Loader2 className="w-4 h-4 animate-spin text-pink-400 shrink-0" />
               <div className="space-y-0.5">
                 <span className="font-bold text-white block">Consultando datos en tiempo real de Pasto con Gemini IA...</span>
-                <span className="text-[10px] text-slate-400 block">
+                <span className="text-[10px] text-slate-300 block">
                   Analizando rutas oficiales, cierres de vías ({selectedDay || '06-ene'}) y restaurantes típicos
                 </span>
               </div>
@@ -269,10 +299,10 @@ export function ChatbotDrawer({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Preguntas sugeridas en píldoras modernas */}
-      <div className="px-5 py-3 border-t border-white/[0.08] bg-slate-950/40">
-        <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
-          <Compass className="w-3.5 h-3.5 text-fuchsia-400" />
+      {/* Preguntas sugeridas en chips estilo píldora con borde sutil y hover reactivo */}
+      <div className="px-5 py-3 border-t border-white/10 bg-slate-950/60 backdrop-blur-md">
+        <p className="text-[10px] font-black uppercase tracking-wider text-slate-300 mb-2 flex items-center gap-1.5">
+          <Compass className="w-3.5 h-3.5 text-amber-400" />
           <span>Consultas rápidas:</span>
         </p>
         <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
@@ -280,7 +310,7 @@ export function ChatbotDrawer({
             <button
               key={i}
               onClick={() => handleSendMessage(question)}
-              className="text-[11px] font-semibold whitespace-nowrap px-3.5 py-1.5 rounded-full bg-white/[0.05] hover:bg-white/[0.12] text-slate-300 hover:text-white border border-white/10 hover:border-fuchsia-500/40 transition active:scale-95 shadow-sm"
+              className="text-[11px] font-bold whitespace-nowrap px-3.5 py-1.5 rounded-full bg-slate-900/70 hover:bg-slate-800/90 text-slate-200 hover:text-white border border-white/10 hover:border-pink-500/50 hover:shadow-md hover:shadow-pink-500/25 transition-all duration-200 active:scale-95 cursor-pointer"
             >
               {question}
             </button>
@@ -288,13 +318,13 @@ export function ChatbotDrawer({
         </div>
       </div>
 
-      {/* Entrada de texto estilo cápsula moderna */}
+      {/* Entrada de texto estilo cápsula moderna con botón multicolor interactivo */}
       <form
         onSubmit={(e) => {
           e.preventDefault();
           handleSendMessage();
         }}
-        className="p-4 border-t border-white/[0.08] bg-slate-950/60 flex items-center gap-2.5"
+        className="p-4 border-t border-white/10 bg-slate-950/80 backdrop-blur-md flex items-center gap-2.5"
       >
         <input
           type="text"
@@ -302,12 +332,13 @@ export function ChatbotDrawer({
           onChange={(e) => setInputMessage(e.target.value)}
           placeholder="Pregúntale al Asistente del Carnaval..."
           disabled={loading}
-          className="flex-1 px-4 py-3 text-xs sm:text-sm bg-white/[0.04] border border-white/10 rounded-full text-white placeholder-slate-500 focus:outline-none focus:ring-4 focus:ring-fuchsia-500/20 focus:border-fuchsia-500 focus:bg-white/[0.08] disabled:opacity-50 transition-all"
+          className="flex-1 px-4 py-3 text-xs sm:text-sm bg-slate-900/70 border border-white/10 rounded-full text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent disabled:opacity-50 transition-all"
         />
         <button
           type="submit"
           disabled={!inputMessage.trim() || loading}
-          className="p-3 rounded-full bg-gradient-to-r from-violet-600 via-fuchsia-600 to-amber-500 hover:from-violet-500 hover:via-fuchsia-500 hover:to-amber-400 text-white shadow-[0_0_20px_rgba(217,70,239,0.5)] active:scale-95 disabled:opacity-40 transition-all duration-200 hover:-translate-y-0.5 shrink-0"
+          className="p-3 rounded-full bg-gradient-to-r from-amber-500 via-pink-500 to-cyan-500 hover:from-amber-600 hover:via-pink-600 hover:to-cyan-600 text-white shadow-md hover:shadow-pink-500/40 active:scale-95 disabled:opacity-40 transition-all duration-200 hover:-translate-y-0.5 shrink-0 cursor-pointer"
+          aria-label="Enviar mensaje"
         >
           <Send className="w-4 h-4" />
         </button>

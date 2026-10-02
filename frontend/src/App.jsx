@@ -19,7 +19,7 @@ export function App() {
   const [chatOpen, setChatOpen] = useState(false);
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
-  const [selectedDay, setSelectedDay] = useState('06-ene');
+  const [currentCarnivalDay, setCurrentCarnivalDay] = useState('06-ene');
   const [userGps, setUserGps] = useState(null);
   const [navRoute, setNavRoute] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(new Date());
@@ -132,8 +132,9 @@ export function App() {
           zones={zones}
           onSelectCoordinates={handleSelectCoordinates}
           selectedLocation={selectedLocation}
-          selectedDay={selectedDay}
-          onSelectDay={setSelectedDay}
+          currentCarnivalDay={currentCarnivalDay}
+          selectedDay={currentCarnivalDay}
+          onSelectDay={setCurrentCarnivalDay}
           onUserLocationChange={setUserGps}
           navRoute={navRoute}
           setNavRoute={setNavRoute}
@@ -150,7 +151,7 @@ export function App() {
           )}
 
           {/* Tarjeta Cápsula de Resumen Rápido */}
-          <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-slate-950/80 backdrop-blur-2xl border border-white/10 shadow-[0_12px_36px_rgba(0,0,0,0.6)] text-xs">
+          <div className="flex items-center gap-3 px-4 py-2 rounded-full backdrop-blur-md bg-slate-900/85 border border-white/10 shadow-lg shadow-black/40 text-xs">
             <div className="flex items-center gap-1.5 text-slate-200">
               <MapPin className="w-3.5 h-3.5 text-rose-400" />
               <span><strong className="text-white font-black">{pois.length}</strong> Puntos</span>
@@ -167,7 +168,7 @@ export function App() {
               className="text-slate-400 hover:text-white transition p-1 hover:bg-white/10 rounded-full active:scale-95"
               title={`Actualizar datos (Última: ${lastUpdated.toLocaleTimeString()})`}
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-fuchsia-400' : 'hover:text-amber-400'}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-pink-400' : 'hover:text-amber-400'}`} />
             </button>
           </div>
         </div>
@@ -177,7 +178,7 @@ export function App() {
           <button
             type="button"
             onClick={() => setChatOpen(true)}
-            className="absolute bottom-6 left-1/2 -translate-x-1/2 sm:translate-x-0 sm:left-auto sm:right-24 z-[1000] flex items-center gap-2.5 px-5 py-3 rounded-full bg-gradient-to-r from-violet-600 via-fuchsia-600 to-amber-500 hover:from-violet-500 hover:via-fuchsia-500 hover:to-amber-400 text-white font-black text-xs sm:text-sm shadow-[0_0_30px_rgba(217,70,239,0.7)] hover:shadow-[0_0_40px_rgba(217,70,239,0.95)] border border-white/30 transition-all duration-300 hover:scale-105 active:scale-95 group select-none pointer-events-auto"
+            className="absolute bottom-6 left-1/2 -translate-x-1/2 sm:translate-x-0 sm:left-auto sm:right-24 z-[1000] flex items-center gap-2.5 px-5 py-3 rounded-full bg-gradient-to-r from-amber-500 via-pink-500 to-cyan-500 hover:from-amber-600 hover:via-pink-600 hover:to-cyan-600 text-white font-black text-xs sm:text-sm shadow-lg shadow-pink-500/30 hover:shadow-pink-500/50 border border-white/30 transition-all duration-200 hover:scale-105 active:scale-95 group select-none pointer-events-auto cursor-pointer"
             title="Abrir Asistente Virtual con IA (Gemini 2.5 Flash)"
           >
             <div className="relative flex items-center justify-center w-6 h-6 rounded-full bg-white/20">
@@ -185,7 +186,7 @@ export function App() {
               <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
             </div>
             <span>Preguntar a la IA</span>
-            <Sparkles className="w-4 h-4 text-amber-300 group-hover:rotate-12 transition-transform" />
+            <Sparkles className="w-4 h-4 text-amber-200 group-hover:rotate-12 transition-transform" />
           </button>
         )}
 
@@ -210,7 +211,9 @@ export function App() {
         onClose={() => setChatOpen(false)}
         userLocation={selectedLocation || userGps || { lat: 1.2136, lng: -77.2811 }}
         userGps={userGps}
-        selectedDay={selectedDay}
+        selectedDay={currentCarnivalDay}
+        currentCarnivalDay={currentCarnivalDay}
+        setCurrentCarnivalDay={setCurrentCarnivalDay}
         setNavRoute={setNavRoute}
       />
     </div>

@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import axios from 'axios';
 import {
   MapContainer,
   TileLayer,
@@ -10,7 +11,6 @@ import {
   useMapEvents,
 } from 'react-leaflet';
 import L from 'leaflet';
-import { ScheduleBar } from './ScheduleBar';
 import { CARNIVAL_ROUTES } from '../data/carnivalRoutes';
 import {
   RESTAURANTS_DATA,
@@ -33,6 +33,7 @@ import {
   ShieldAlert,
   Utensils,
   Navigation,
+  X,
 } from 'lucide-react';
 
 // Coordenadas centrales de San Juan de Pasto (Plaza de Nariño / Corazón del Carnaval)
@@ -454,18 +455,38 @@ function MapAutoGeolocation({ onAutoLocate }) {
   return null;
 }
 
-// Controlador para centrar y animar la vista del mapa según el evento/día seleccionado
-function MapRouteController({ currentEvent }) {
+// Sectores protagonistas de cada día del Carnaval para centrado suave con IA
+const DAY_FOCAL_POINTS = {
+  '28-dic': { center: [1.2125, -77.2795], zoom: 16, sector: 'El Colorado / Centro Histórico' },
+  '31-dic': { center: [1.2136, -77.2780], zoom: 15, sector: 'Senda Cra 27 - Años Viejos' },
+  '02-ene': { center: [1.2115, -77.2785], zoom: 15, sector: 'Normal Superior a Cra 27 - Carnavalito' },
+  '03-ene': { center: [1.2145, -77.2782], zoom: 15, sector: 'Senda Cra 27 - Canto a la Tierra' },
+  '04-ene': { center: [1.2145, -77.2780], zoom: 16, sector: 'Plaza de Nariño / Centro Histórico Peatonal - Flia Castañeda' },
+  '05-ene': { center: [1.2115, -77.2765], zoom: 16, sector: 'Plaza del Carnaval y Plaza de Nariño - Día de Negros' },
+  '06-ene': { center: [1.2140, -77.2870], zoom: 15, sector: 'Avenida Mijitayo / Panamericana - Desfile Magno' },
+  '07-ene': { center: [1.1850, -77.2950], zoom: 14, sector: 'Corregimiento de Obonuco - Festival del Cuy' },
+};
+
+// Controlador para centrar y animar suavemente la vista del mapa según el evento/día seleccionado
+function MapRouteController({ currentEvent, currentCarnivalDay }) {
   const map = useMap();
   const prevEventRef = useRef(null);
 
   useEffect(() => {
-    if (!currentEvent || prevEventRef.current === currentEvent.name || !map) return;
-    prevEventRef.current = currentEvent.name;
+    if (!currentEvent || !map) return;
+    const currentKey = `${currentCarnivalDay || ''}-${currentEvent.name}`;
+    if (prevEventRef.current === currentKey) return;
+    prevEventRef.current = currentKey;
 
     const applyView = () => {
       try {
-        if (currentEvent.route && currentEvent.route.length > 1) {
+        const focal = currentCarnivalDay ? DAY_FOCAL_POINTS[currentCarnivalDay] : null;
+        if (focal) {
+          map.flyTo(focal.center, focal.zoom, {
+            duration: 1.5,
+            easeLinearity: 0.25,
+          });
+        } else if (currentEvent.route && currentEvent.route.length > 1) {
           const bounds = L.latLngBounds(currentEvent.route);
           map.fitBounds(bounds, { padding: [70, 70], maxZoom: 16, duration: 1.2 });
         } else if (currentEvent.closedPoints && currentEvent.closedPoints.length > 0) {
@@ -484,26 +505,43 @@ function MapRouteController({ currentEvent }) {
     } else {
       map.whenReady(applyView);
     }
-  }, [currentEvent, map]);
+  }, [currentEvent, currentCarnivalDay, map]);
 
   return null;
 }
 
-// Controlador para ajustar automáticamente la vista al trazar una ruta de navegación con la IA
-function NavRouteController({ navRoute }) {
+// Función asíncrona de enrutamiento peatonal real por calles usando el servicio público de OSRM
+export async function fetchRealRoute(startCoords, targetCoords) {
+  try {
+    const url = `https://router.project-osrm.org/route/v1/walking/${startCoords[1]},${startCoords[0]};${targetCoords[1]},${targetCoords[0]}?overview=full&geometries=geojson`;
+    const response = await axios.get(url, { timeout: 8000 });
+    const route = response.data?.routes?.[0];
+    if (route?.geometry?.coordinates && route.geometry.coordinates.length > 0) {
+      // Convierte el array GeoJSON devuelto [lng, lat] al formato requerido por Leaflet [lat, lng]
+      return route.geometry.coordinates.map(([lng, lat]) => [lat, lng]);
+    }
+    return [startCoords, targetCoords];
+  } catch (error) {
+    console.warn('Fallo o timeout al consultar ruta peatonal con OSRM:', error);
+    return [startCoords, targetCoords];
+  }
+}
+
+// Controlador para ajustar automáticamente la vista al trazar una ruta de navegación real por calles
+function NavRouteController({ routePath }) {
   const map = useMap();
-  const prevNavRef = useRef(null);
+  const prevRouteKeyRef = useRef(null);
 
   useEffect(() => {
-    if (!navRoute || !navRoute.startCoords || !navRoute.targetCoords || !map) return;
+    if (!routePath || routePath.length === 0 || !map) return;
 
-    const navKey = `${navRoute.targetName}-${navRoute.startCoords.join(',')}-${navRoute.targetCoords.join(',')}`;
-    if (prevNavRef.current === navKey) return;
-    prevNavRef.current = navKey;
+    const routeKey = `${routePath.length}-${routePath[0][0]},${routePath[0][1]}-${routePath[routePath.length - 1][0]},${routePath[routePath.length - 1][1]}`;
+    if (prevRouteKeyRef.current === routeKey) return;
+    prevRouteKeyRef.current = routeKey;
 
     const adjust = () => {
       try {
-        map.fitBounds([navRoute.startCoords, navRoute.targetCoords], { padding: [50, 50] });
+        map.fitBounds(routePath, { padding: [50, 50] });
       } catch (err) {
         console.warn("Error en fitBounds de navegación:", err);
       }
@@ -514,7 +552,7 @@ function NavRouteController({ navRoute }) {
     } else {
       map.whenReady(adjust);
     }
-  }, [navRoute, map]);
+  }, [routePath, map]);
 
   return null;
 }
@@ -526,14 +564,78 @@ export function MapView({
   onSelectCoordinates,
   selectedLocation,
   selectedDay: propSelectedDay,
+  currentCarnivalDay: propCurrentCarnivalDay,
   onSelectDay: propOnSelectDay,
   onUserLocationChange,
   navRoute = null,
   setNavRoute,
 }) {
-  // Día seleccionado del Carnaval (sincronizable con componente superior o local)
+  // Estado local para almacenar la ruta calculada por OSRM
+  const [routePath, setRoutePath] = useState(null);
+  const [isRouting, setIsRouting] = useState(false);
+
+  // Efecto que escucha los cambios de navRoute: invoca fetchRealRoute o limpia routePath
+  useEffect(() => {
+    if (navRoute && navRoute.startCoords && navRoute.targetCoords) {
+      let isMounted = true;
+      setIsRouting(true);
+
+      fetchRealRoute(navRoute.startCoords, navRoute.targetCoords)
+        .then((coords) => {
+          if (isMounted) {
+            setRoutePath(coords);
+          }
+        })
+        .catch((err) => {
+          console.warn('Error al calcular ruta real:', err);
+          if (isMounted) {
+            setRoutePath([navRoute.startCoords, navRoute.targetCoords]);
+          }
+        })
+        .finally(() => {
+          if (isMounted) {
+            setIsRouting(false);
+          }
+        });
+
+      return () => {
+        isMounted = false;
+      };
+    } else {
+      setRoutePath(null);
+      setIsRouting(false);
+    }
+  }, [navRoute]);
+
+  // Distancia estimada para mostrar en la tarjeta de navegación
+  const displayDistance = useMemo(() => {
+    if (routePath && routePath.length > 1) {
+      let totalKm = 0;
+      for (let i = 0; i < routePath.length - 1; i++) {
+        totalKm += calculateDistanceKm(
+          routePath[i][0],
+          routePath[i][1],
+          routePath[i + 1][0],
+          routePath[i + 1][1]
+        );
+      }
+      return formatDistance(totalKm);
+    }
+    if (navRoute?.startCoords && navRoute?.targetCoords) {
+      const km = calculateDistanceKm(
+        navRoute.startCoords[0],
+        navRoute.startCoords[1],
+        navRoute.targetCoords[0],
+        navRoute.targetCoords[1]
+      );
+      return formatDistance(km);
+    }
+    return null;
+  }, [routePath, navRoute]);
+
+  // Día seleccionado del Carnaval (controlado dinámicamente por la IA desde App.jsx)
   const [internalDay, setInternalDay] = useState('06-ene');
-  const selectedDay = propSelectedDay || internalDay;
+  const selectedDay = propCurrentCarnivalDay || propSelectedDay || internalDay;
   const setSelectedDay = (day) => {
     setInternalDay(day);
     if (propOnSelectDay) {
@@ -675,15 +777,30 @@ export function MapView({
 
   return (
     <div className="relative w-full h-full min-h-[500px] overflow-hidden shadow-2xl bg-slate-950">
-      {/* 1. Contenedor Superior Fijo: Barra de Selección de Días y Filtros Rápidos */}
+      {/* 1. Contenedor Superior Fijo: Banner de Día Controlado por IA y Filtros Rápidos */}
       <div className="absolute top-4 left-4 right-4 z-[1000] flex flex-col gap-2 pointer-events-none">
-        {/* Barra de Agenda por Días del Carnaval */}
-        <div className="pointer-events-auto">
-          <ScheduleBar selectedDay={selectedDay} onSelectDay={setSelectedDay} />
+        {/* Banner Flotante Superior Sutil (Controlado por IA) */}
+        <div className="pointer-events-auto flex items-center justify-between gap-3 px-4 py-2 rounded-2xl bg-slate-950/90 backdrop-blur-2xl border border-fuchsia-500/30 shadow-[0_8px_32px_rgba(217,70,239,0.25)] text-xs text-white max-w-xl">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="flex h-2.5 w-2.5 relative shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-fuchsia-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-fuchsia-500 shadow-[0_0_8px_rgba(217,70,239,0.9)]"></span>
+            </span>
+            <div className="truncate">
+              <span className="text-slate-300">Visualizando en el mapa: </span>
+              <strong className="font-black bg-gradient-to-r from-amber-300 via-fuchsia-300 to-rose-300 bg-clip-text text-transparent">
+                {currentEvent.name}
+              </strong>
+            </div>
+          </div>
+          <span className="shrink-0 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full centenary-badge text-amber-300 flex items-center gap-1 shadow-sm">
+            <Sparkles className="w-3 h-3 text-amber-400" />
+            <span>Centenario IA</span>
+          </span>
         </div>
 
         {/* Barra Flotante de Filtros Rápidos */}
-        <div className="pointer-events-auto flex items-center gap-1.5 p-1.5 rounded-full bg-slate-950/85 backdrop-blur-2xl border border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.65)] w-max max-w-full overflow-x-auto no-scrollbar">
+        <div className="pointer-events-auto flex items-center gap-1.5 p-1.5 rounded-full backdrop-blur-lg bg-slate-900/85 border border-slate-800/80 shadow-[0_12px_40px_rgba(0,0,0,0.65)] w-max max-w-full overflow-x-auto no-scrollbar">
           <span className="hidden sm:flex items-center gap-1.5 pl-3 pr-2 text-xs font-black tracking-wider uppercase bg-gradient-to-r from-amber-400 via-rose-300 to-purple-400 bg-clip-text text-transparent select-none">
             <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
             <span>Filtros</span>
@@ -695,10 +812,10 @@ export function MapView({
               <button
                 key={f.id}
                 onClick={() => setActiveFilter(f.id)}
-                className={`group flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-200 whitespace-nowrap active:scale-95 ${
+                className={`group flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-200 whitespace-nowrap active:scale-95 cursor-pointer ${
                   isActive
-                    ? 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-amber-500 text-white shadow-[0_0_22px_rgba(217,70,239,0.55)] ring-1 ring-white/30 scale-[1.03]'
-                    : 'text-slate-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.1] border border-white/[0.06] hover:border-white/20'
+                    ? 'bg-gradient-to-r from-amber-500 via-pink-500 to-cyan-500 text-white shadow-md shadow-pink-500/30 scale-[1.03]'
+                    : 'text-slate-300 hover:text-white bg-slate-900/70 hover:bg-slate-800/90 border border-white/10 hover:border-pink-500/40 hover:shadow-md hover:shadow-pink-500/20'
                 }`}
               >
                 <span className="text-sm transition-transform duration-200 group-hover:scale-110">{f.icon}</span>
@@ -710,7 +827,7 @@ export function MapView({
       </div>
 
       {/* 2. Tarjeta Informativa Flotante del Día Seleccionado y Estado de Vías */}
-      <div className="absolute bottom-5 left-4 z-[1000] max-w-sm sm:max-w-md w-[calc(100vw-2rem)] sm:w-auto bg-slate-950/92 backdrop-blur-2xl p-4 rounded-2xl border border-white/10 shadow-[0_16px_40px_rgba(0,0,0,0.7)] text-slate-200 pointer-events-auto">
+      <div className="absolute bottom-5 left-4 z-[1000] max-w-sm sm:max-w-md w-[calc(100vw-2rem)] sm:w-auto backdrop-blur-lg bg-slate-900/85 p-4 rounded-2xl border border-slate-800/80 shadow-2xl text-slate-200 pointer-events-auto">
         <div className="flex items-start justify-between gap-3 border-b border-white/10 pb-2 mb-2">
           <div className="min-w-0">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -798,24 +915,34 @@ export function MapView({
         )}
       </div>
 
-      {/* 2.1 Tarjeta Flotante de Navegación Activa (Generada por la IA) */}
+      {/* 2.1 Tarjeta Flotante de Navegación Activa por Calles */}
       {navRoute && (
-        <div className="absolute bottom-20 sm:bottom-6 left-1/2 -translate-x-1/2 z-[1100] flex items-center gap-3.5 px-5 py-3 rounded-2xl bg-slate-950/95 backdrop-blur-2xl border border-blue-500/50 shadow-[0_0_35px_rgba(37,99,235,0.5)] text-white pointer-events-auto">
+        <div className="absolute bottom-20 sm:bottom-6 left-1/2 -translate-x-1/2 z-[1100] flex items-center gap-3.5 px-5 py-3.5 backdrop-blur-lg bg-slate-900/85 border border-slate-800/80 rounded-2xl shadow-2xl shadow-blue-500/20 text-white pointer-events-auto animate-in fade-in">
           <div className="flex items-center gap-2.5">
-            <span className="relative flex h-3 w-3">
+            <span className="relative flex h-3 w-3 shrink-0">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
             </span>
-            <span className="text-xs sm:text-sm font-black whitespace-nowrap">
-              🧭 Navegando hacia: <span className="text-blue-400 font-black">{navRoute.targetName}</span>
-            </span>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+              <span className="text-xs sm:text-sm font-black whitespace-nowrap">
+                🧭 Navegando hacia: <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-pink-400 to-cyan-300 font-black">{navRoute.targetName}</span>
+              </span>
+              {displayDistance && (
+                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 w-max flex items-center gap-1">
+                  <span>🚶 {displayDistance}</span>
+                  {isRouting && <span className="text-[10px] text-amber-300 animate-pulse">(trazando...)</span>}
+                </span>
+              )}
+            </div>
           </div>
           <button
             type="button"
             onClick={() => setNavRoute && setNavRoute(null)}
-            className="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 active:scale-95 text-white text-xs font-black transition shadow-md whitespace-nowrap cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-red-600 via-rose-600 to-pink-600 hover:from-red-500 hover:via-rose-500 hover:to-pink-500 text-white text-xs font-black shadow-lg shadow-rose-600/35 hover:shadow-rose-600/50 active:scale-95 hover:animate-bounce-short transition-all duration-200 cursor-pointer ml-1 whitespace-nowrap"
+            title="Finalizar navegación asistida"
           >
-            Terminar Navegación
+            <X className="w-3.5 h-3.5 stroke-[2.5]" />
+            <span>Finalizar Navegación</span>
           </button>
         </div>
       )}
@@ -834,10 +961,10 @@ export function MapView({
         <MapAutoGeolocation onAutoLocate={(map) => handleLocateUser(map, true)} />
 
         {/* Controlador para centrar y animar la vista al cambiar de día/evento */}
-        <MapRouteController currentEvent={currentEvent} />
+        <MapRouteController currentEvent={currentEvent} currentCarnivalDay={selectedDay} />
 
-        {/* Controlador para centrar y animar la vista al trazar una ruta con IA */}
-        <NavRouteController navRoute={navRoute} />
+        {/* Controlador para centrar y animar la vista al trazar una ruta de navegación */}
+        <NavRouteController routePath={routePath} />
 
         {/* Controles de navegación estilo Google Maps (Mi Ubicación + Zoom) */}
         <GoogleMapsNavigationControls
@@ -954,32 +1081,39 @@ export function MapView({
           </>
         )}
 
-        {/* Línea de Ruta de Navegación asistida por IA */}
-        {navRoute && navRoute.startCoords && navRoute.targetCoords && (
-          <>
-            <Polyline 
-              positions={[navRoute.startCoords, navRoute.targetCoords]} 
-              pathOptions={{ color: '#2563eb', weight: 6, dashArray: '8, 8' }} 
-            />
-            <Marker
-              position={navRoute.targetCoords}
-              icon={createCustomIcon('linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)', '🎯', true, 'rgba(37, 99, 235, 0.75)')}
-            >
-              <Popup>
-                <div className="text-xs p-1 font-sans">
-                  <span className="text-[10px] font-black uppercase text-blue-400 block mb-0.5">
-                    Destino Asistido por IA
-                  </span>
-                  <strong className="text-white block font-black text-sm">
-                    {navRoute.targetName}
-                  </strong>
+        {/* Renderizado de la ruta peatonal en Leaflet con OSRM */}
+        {routePath && (
+          <Polyline
+            positions={routePath}
+            pathOptions={{ color: '#2563eb', weight: 6, opacity: 0.85 }}
+          />
+        )}
+
+        {navRoute && navRoute.targetCoords && (
+          <Marker
+            position={navRoute.targetCoords}
+            icon={createCustomIcon('linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)', '🎯', true, 'rgba(37, 99, 235, 0.75)')}
+          >
+            <Popup>
+              <div className="text-xs p-1 font-sans">
+                <span className="text-[10px] font-black uppercase text-blue-400 block mb-0.5">
+                  Destino Asistido por IA
+                </span>
+                <strong className="text-white block font-black text-sm">
+                  {navRoute.targetName}
+                </strong>
+                {displayDistance ? (
+                  <p className="text-blue-300 font-bold mt-1 text-[11px]">
+                    🚶 Distancia a pie: {displayDistance}
+                  </p>
+                ) : (
                   <p className="text-slate-300 mt-1">
                     Navegación activa hacia este punto del Carnaval de Pasto.
                   </p>
-                </div>
-              </Popup>
-            </Marker>
-          </>
+                )}
+              </div>
+            </Popup>
+          </Marker>
         )}
 
         {/* Marcador Salida: Pin verde con ícono "🏁 Inicio" */}

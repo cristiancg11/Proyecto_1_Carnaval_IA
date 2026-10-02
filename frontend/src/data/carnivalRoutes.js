@@ -115,16 +115,22 @@ export const CARNIVAL_ROUTES = {
   },
 
   '05-ene': {
-    name: "Día de Negros (Juego de la Pintica)",
+    name: "Día de Negros (Juego de la Pintica y Tarimas)",
     hours: "11:00 - 23:00",
     description: "Conmemoración de la igualdad étnica, juego con cosmético negro y orquestas en plazas.",
-    color: "#334155", // Pizarra oscuro
+    color: "#a855f7", // Púrpura festivo
+    startPoint: { lat: 1.2145, lng: -77.2782, label: "Tarima Principal: Plaza de Nariño" },
+    endPoint: { lat: 1.2115, lng: -77.2785, label: "Tarima Oficial: Plaza del Carnaval" },
     closedPoints: [
       { lat: 1.2115, lng: -77.2785, label: "Peatonalización Plaza del Carnaval" },
       { lat: 1.2145, lng: -77.2782, label: "Peatonalización Plaza de Nariño" },
       { lat: 1.2090, lng: -77.2765, label: "Zona de Graderías controladas (San Juan Bosco)" }
     ],
-    route: [] // No hay desfile con carrozas, las plazas son peatonales
+    route: [
+      [1.2145, -77.2782], // Plaza de Nariño
+      [1.2130, -77.2780], // Corredor Cra 27
+      [1.2115, -77.2785]  // Plaza del Carnaval
+    ]
   },
 
   '06-ene': {
@@ -158,10 +164,17 @@ export const CARNIVAL_ROUTES = {
     hours: "09:00 - 17:00",
     description: "Gastronomía tradicional andina y música campesina en corregimientos.",
     color: "#ea580c", // Naranja
+    startPoint: { lat: 1.2145, lng: -77.2782, label: "Punto de Encuentro: Plaza de Nariño" },
+    endPoint: { lat: 1.1850, lng: -77.2950, label: "Destino Festivo: Corregimiento de Obonuco" },
     closedPoints: [
       { lat: 1.1850, lng: -77.2950, label: "Cierre plaza corregimiento de Obonuco" },
       { lat: 1.1680, lng: -77.2750, label: "Cierre plaza corregimiento de Catambuco" }
     ],
-    route: [] // Rutas rurales despejadas en el casco urbano
+    route: [
+      [1.2145, -77.2782], // Plaza de Nariño
+      [1.2050, -77.2850], // Salida al sur
+      [1.1950, -77.2900], // Vía a Obonuco
+      [1.1850, -77.2950]  // Plaza de Obonuco
+    ]
   }
 };

@@ -126,53 +126,54 @@ export function AuthModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Adorno superior festivo en degradé neón */}
-        <div className="h-1.5 w-full bg-gradient-to-r from-amber-400 via-fuchsia-500 to-violet-600 shadow-[0_0_15px_rgba(217,70,239,0.7)]"></div>
+        <div className="h-1.5 w-full bg-gradient-to-r from-amber-400 via-rose-500 to-violet-600 shadow-[0_0_15px_rgba(244,63,94,0.6)]"></div>
 
         {/* Botón de cierre */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-full transition"
+          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-full transition active:scale-95"
           aria-label="Cerrar modal"
         >
           <X className="w-5 h-5" />
         </button>
 
         <div className="p-6 sm:p-8">
-          {/* Encabezado con estética del Carnaval */}
+          {/* Encabezado con estética del Carnaval y Conmemoración del Centenario */}
           <div className="flex flex-col items-center text-center mb-6">
-            <div className="relative flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 via-fuchsia-600 to-violet-600 shadow-[0_0_25px_rgba(217,70,239,0.5)] border border-white/20 text-2xl mb-3">
-              🎭
-              <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]"></span>
-              </span>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 mb-3 rounded-full centenary-badge text-[10px] sm:text-[11px] font-bold text-amber-300 backdrop-blur-md shadow-md shadow-amber-500/10 max-w-full">
+              <Sparkles className="w-3 h-3 text-amber-400 shrink-0" />
+              <span className="truncate">✨ Rumbo al Centenario 1927 - 2027</span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-black bg-gradient-to-r from-amber-400 via-rose-300 to-purple-400 bg-clip-text text-transparent">
-              CarnavalIA Pasto 2026
+
+            <div className="relative flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-400 via-rose-500 to-violet-600 shadow-lg shadow-pink-500/25 border border-white/20 text-2xl mb-2">
+              🎭
+            </div>
+            <h2 className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-pink-500 to-cyan-400">
+              CarnavalIA
             </h2>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-slate-300 mt-1">
               {activeTab === 'login'
-                ? 'Accede a tu cuenta ciudadana para participar e interactuar'
-                : 'Únete para reportar incidencias y vivir el Carnaval seguro'}
+                ? 'Ingresa tus credenciales para explorar la Senda y vivir el Carnaval'
+                : 'Únete para reportar alertas y chatear con el Asistente IA'}
             </p>
           </div>
 
           {/* Mensaje contextual si fue provocado por una acción protegida */}
           {promptMessage && (
-            <div className="mb-5 p-3 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs flex items-start gap-2.5 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
+            <div className="mb-5 p-3 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs flex items-start gap-2.5 shadow-md shadow-amber-500/10">
               <ShieldAlert className="w-4 h-4 shrink-0 text-amber-400 mt-0.5" />
               <span>{promptMessage}</span>
             </div>
           )}
 
           {/* Selector de Pestañas en Cápsula (Login / Registro) */}
-          <div className="flex p-1.5 mb-6 bg-white/[0.04] backdrop-blur-xl rounded-full border border-white/10 shadow-inner">
+          <div className="flex p-1.5 mb-6 bg-slate-950/60 backdrop-blur-xl rounded-full border border-white/10 shadow-inner">
             <button
               type="button"
               onClick={() => handleTabSwitch('login')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-black rounded-full transition-all duration-200 ${
+              className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-black rounded-full transition-all duration-200 active:scale-95 ${
                 activeTab === 'login'
-                  ? 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-amber-500 text-white shadow-[0_0_20px_rgba(217,70,239,0.5)] scale-[1.02]'
+                  ? 'bg-gradient-to-r from-amber-500 via-pink-500 to-cyan-500 text-white shadow-md shadow-pink-500/30 scale-[1.02]'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -182,9 +183,9 @@ export function AuthModal({
             <button
               type="button"
               onClick={() => handleTabSwitch('register')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-black rounded-full transition-all duration-200 ${
+              className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-black rounded-full transition-all duration-200 active:scale-95 ${
                 activeTab === 'register'
-                  ? 'bg-gradient-to-r from-fuchsia-600 to-violet-600 text-white shadow-[0_0_20px_rgba(217,70,239,0.5)] scale-[1.02]'
+                  ? 'bg-gradient-to-r from-pink-500 via-rose-500 to-violet-600 text-white shadow-md shadow-pink-500/30 scale-[1.02]'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -195,7 +196,7 @@ export function AuthModal({
 
           {/* Feedback de error */}
           {error && (
-            <div className="mb-4 p-3.5 rounded-2xl bg-rose-500/15 border border-rose-500/40 text-rose-300 text-xs flex items-start gap-2.5 animate-in fade-in shadow-[0_0_15px_rgba(244,63,94,0.2)]">
+            <div className="mb-4 p-3.5 rounded-xl bg-rose-500/15 border border-rose-500/40 text-rose-300 text-xs flex items-start gap-2.5 animate-in fade-in shadow-md shadow-rose-500/10">
               <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
               <span>{error}</span>
             </div>
@@ -203,7 +204,7 @@ export function AuthModal({
 
           {/* Feedback de éxito */}
           {successMsg && (
-            <div className="mb-4 p-3.5 rounded-2xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs flex items-start gap-2.5 animate-in fade-in shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+            <div className="mb-4 p-3.5 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs flex items-start gap-2.5 animate-in fade-in shadow-md shadow-emerald-500/10">
               <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400 mt-0.5" />
               <span>{successMsg}</span>
             </div>
@@ -214,7 +215,7 @@ export function AuthModal({
             {/* Campo: Nombre completo (solo en Registro) */}
             {activeTab === 'register' && (
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                <label className="block text-xs font-bold text-slate-200 mb-1.5">
                   Nombre Completo
                 </label>
                 <div className="relative">
@@ -225,7 +226,7 @@ export function AuthModal({
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Ej. María Nariño"
-                    className="w-full bg-white/[0.04] border border-white/10 focus:border-fuchsia-500 focus:bg-white/[0.08] focus:ring-4 focus:ring-fuchsia-500/20 rounded-2xl pl-11 pr-4 py-3 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition-all"
+                    className="w-full bg-slate-950/60 border border-white/10 focus:ring-2 focus:ring-pink-500 focus:border-transparent rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-white placeholder-slate-400 outline-none transition-all duration-200 shadow-inner"
                   />
                 </div>
               </div>
@@ -233,7 +234,7 @@ export function AuthModal({
 
             {/* Campo: Correo electrónico */}
             <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1.5">
+              <label className="block text-xs font-bold text-slate-200 mb-1.5">
                 Correo Electrónico
               </label>
               <div className="relative">
@@ -244,14 +245,14 @@ export function AuthModal({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="tu.correo@ejemplo.com"
-                  className="w-full bg-white/[0.04] border border-white/10 focus:border-fuchsia-500 focus:bg-white/[0.08] focus:ring-4 focus:ring-fuchsia-500/20 rounded-2xl pl-11 pr-4 py-3 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition-all"
+                  className="w-full bg-slate-950/60 border border-white/10 focus:ring-2 focus:ring-pink-500 focus:border-transparent rounded-xl pl-11 pr-4 py-3 text-xs sm:text-sm text-white placeholder-slate-400 outline-none transition-all duration-200 shadow-inner"
                 />
               </div>
             </div>
 
             {/* Campo: Contraseña */}
             <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1.5">
+              <label className="block text-xs font-bold text-slate-200 mb-1.5">
                 Contraseña
               </label>
               <div className="relative">
@@ -262,7 +263,7 @@ export function AuthModal({
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Mínimo 6 caracteres"
-                  className="w-full bg-white/[0.04] border border-white/10 focus:border-fuchsia-500 focus:bg-white/[0.08] focus:ring-4 focus:ring-fuchsia-500/20 rounded-2xl pl-11 pr-11 py-3 text-xs sm:text-sm text-white placeholder-slate-500 outline-none transition-all"
+                  className="w-full bg-slate-950/60 border border-white/10 focus:ring-2 focus:ring-pink-500 focus:border-transparent rounded-xl pl-11 pr-11 py-3 text-xs sm:text-sm text-white placeholder-slate-400 outline-none transition-all duration-200 shadow-inner"
                 />
                 <button
                   type="button"
@@ -278,11 +279,11 @@ export function AuthModal({
               </div>
             </div>
 
-            {/* Botón de Enviar con brillo y halo de resplandor */}
+            {/* Botón de Enviar con gradiente multicolor y microinteracción */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-3 py-3.5 rounded-full font-black text-xs sm:text-sm text-white bg-gradient-to-r from-violet-600 via-fuchsia-600 to-amber-500 hover:from-violet-500 hover:via-fuchsia-500 hover:to-amber-400 transition-all duration-300 shadow-[0_0_25px_rgba(217,70,239,0.55)] hover:shadow-[0_0_35px_rgba(217,70,239,0.75)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full mt-3 py-3.5 rounded-xl font-black text-xs sm:text-sm text-white bg-gradient-to-r from-amber-500 via-pink-500 to-cyan-500 hover:from-amber-600 hover:via-pink-600 hover:to-cyan-600 active:scale-95 transition-all duration-200 shadow-md hover:shadow-pink-500/40 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
             >
               {loading ? (
                 <>

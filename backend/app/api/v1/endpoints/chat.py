@@ -34,9 +34,16 @@ def chat_with_carnaval_assistant(
 
     y retorna la respuesta orientativa generada por el Asistente Virtual.
     """
+    lat = chat_in.user_lat if chat_in.user_lat is not None else chat_in.user_latitude
+    lng = chat_in.user_lng if chat_in.user_lng is not None else chat_in.user_longitude
+
     return generate_chat_response(
         message=chat_in.message,
-        user_latitude=chat_in.user_latitude,
-        user_longitude=chat_in.user_longitude,
+        user_latitude=lat,
+        user_longitude=lng,
+        user_lat=lat,
+        user_lng=lng,
+        selected_day=chat_in.selected_day,
         db=db
     )
+
