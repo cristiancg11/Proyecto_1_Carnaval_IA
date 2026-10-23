@@ -1,110 +1,95 @@
 import React from 'react';
-import { Bot, Sparkles, Activity, PlusCircle, LogIn, LogOut } from 'lucide-react';
+import { Map, Calendar, LogIn, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export function Header({
-  isServerHealthy,
-  onOpenChat,
-  onOpenReportModal,
+  activeView = 'senda',
+  onSelectSenda,
+  onOpenCalendar,
   onOpenAuth,
-  chatOpen,
-  reportsCount = 0,
-  zonesCount = 0,
 }) {
   const { user, isAuthenticated, logout } = useAuth();
+
   return (
-    <header className="sticky top-0 z-30 w-full backdrop-blur-md bg-slate-900/75 border-b border-white/10 px-4 lg:px-6 py-3 transition-all shadow-lg shadow-black/40">
+    <header className="sticky top-0 z-30 w-full backdrop-blur-md bg-slate-900/90 border-b border-white/10 px-4 sm:px-6 py-3 transition-all shadow-sm">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-        {/* Marca y Título con estética del Centenario */}
-        <div className="flex items-center gap-3">
-          <div className="relative flex items-center justify-center w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-400 via-rose-500 to-violet-600 shadow-lg shadow-pink-500/25 border border-white/20 text-white font-black text-xl">
+        {/* 1. Logotipo e identidad visual ("CarnavalIA") */}
+        <div
+          onClick={onSelectSenda}
+          className="flex items-center gap-3 cursor-pointer group select-none"
+          title="CarnavalIA - Senda del Carnaval de Pasto"
+        >
+          <div className="relative flex items-center justify-center w-10 h-10 rounded-2xl bg-slate-800/80 border border-white/10 shadow-sm text-xl group-hover:scale-105 transition-transform">
             🎭
-            <span className="absolute -bottom-0.5 -right-0.5 flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]"></span>
-            </span>
           </div>
 
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-lg lg:text-xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-pink-500 to-cyan-400">
-                CarnavalIA
-              </h1>
-              <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-full centenary-badge text-amber-300">
-                <Sparkles className="w-2.5 h-2.5 text-amber-400" />
-                <span>Centenario 1927 - 2027</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-lg sm:text-xl font-black tracking-tight text-white">
+                Carnaval<span className="text-amber-400">IA</span>
               </span>
             </div>
-            <p className="text-[11px] text-slate-300 hidden md:block">
-              Carnaval de Negros y Blancos • Patrimonio de la Humanidad
+            <p className="text-[10px] sm:text-[11px] text-slate-400 font-medium hidden sm:block">
+              San Juan de Pasto • Centenario
             </p>
           </div>
         </div>
 
-        {/* Acciones principales y estado del sistema */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          {/* Indicador de estado del servidor en píldora de cristal */}
-          <div
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
-              isServerHealthy
-                ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.2)]'
-                : 'bg-rose-500/15 text-rose-300 border-rose-500/30'
-            }`}
-            title={isServerHealthy ? 'Servidor API en línea y conectado a Supabase' : 'Conexión con el servidor no disponible'}
-          >
-            <Activity className={`w-3.5 h-3.5 ${isServerHealthy ? 'animate-pulse text-emerald-400' : 'text-rose-400'}`} />
-            <span className="hidden sm:inline">
-              {isServerHealthy ? 'API Online' : 'Desconectado'}
-            </span>
-          </div>
-
-          {/* Botón moderno de Cristal para reportar incidencia */}
+        {/* 2. Enlaces directos de navegación principal */}
+        <nav aria-label="Navegación principal" className="flex items-center gap-1 sm:gap-2">
+          {/* Enlace: Senda del Carnaval (Mapa) */}
           <button
-            onClick={() => onOpenReportModal()}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold text-slate-200 hover:text-white bg-slate-900/60 hover:bg-slate-800/80 border border-white/10 hover:border-amber-400/40 backdrop-blur-md shadow-sm transition-all duration-200 hover:-translate-y-0.5 active:scale-95"
-            title="Crear un nuevo reporte de incidencia"
+            type="button"
+            onClick={onSelectSenda}
+            className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-2xl text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer ${
+              activeView === 'senda'
+                ? 'bg-slate-800 text-white border border-white/10 shadow-sm'
+                : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+            }`}
+            title="Ver mapa de la Senda del Carnaval"
           >
-            <PlusCircle className="w-4 h-4 text-amber-400 shrink-0" />
-            <span className="hidden sm:inline">Reportar</span>
+            <Map className="w-4 h-4 text-amber-400 shrink-0" />
+            <span>Senda del Carnaval</span>
           </button>
 
-          {/* Botón Asistente IA con gradiente vibrante y halo de resplandor */}
+          {/* Enlace: Calendario de Eventos */}
           <button
-            onClick={onOpenChat}
-            className={`relative flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black transition-all duration-200 hover:-translate-y-0.5 active:scale-95 ${
-              chatOpen
-                ? 'bg-gradient-to-r from-violet-600 via-rose-500 to-amber-500 text-white shadow-lg shadow-pink-500/30 ring-2 ring-white/30'
-                : 'bg-gradient-to-r from-amber-500 via-pink-500 to-cyan-500 hover:from-amber-600 hover:via-pink-600 hover:to-cyan-600 text-white shadow-md hover:shadow-pink-500/40'
+            type="button"
+            onClick={onOpenCalendar}
+            className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-2xl text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer ${
+              activeView === 'calendario'
+                ? 'bg-slate-800 text-white border border-white/10 shadow-sm'
+                : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
             }`}
+            title="Abrir programación y calendario de eventos"
           >
-            <Bot className="w-4 h-4 animate-bounce" />
-            <span>Asistente IA</span>
-            <Sparkles className="w-3.5 h-3.5 text-amber-200 hidden sm:inline" />
+            <Calendar className="w-4 h-4 text-amber-400 shrink-0" />
+            <span>Calendario de Eventos</span>
           </button>
+        </nav>
 
-          {/* Separador de cristal sutil */}
-          <div className="h-6 w-px bg-white/10 hidden sm:block"></div>
-
-          {/* Sección de Autenticación */}
+        {/* 3. Botón de autenticación (Iniciar Sesión / Perfil con avatar) */}
+        <div className="flex items-center gap-2">
           {isAuthenticated ? (
-            <div className="flex items-center gap-2">
-              {/* Badge de usuario autenticado en píldora translúcida */}
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              {/* Perfil con avatar */}
               <div
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/60 border border-white/10 shadow-sm"
-                title={`Sesión iniciada como: ${user?.name} (${user?.email})`}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-slate-800/80 border border-white/10 shadow-sm select-none"
+                title={`Sesión iniciada: ${user?.name || user?.email}`}
               >
-                <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-amber-400 via-rose-500 to-purple-600 flex items-center justify-center text-[11px] font-black text-white shadow-sm">
+                <div className="w-6 h-6 rounded-xl bg-gradient-to-tr from-amber-500 to-rose-600 flex items-center justify-center text-[11px] font-black text-white shadow-sm shrink-0">
                   {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
                 </div>
-                <span className="text-xs font-bold text-slate-200 max-w-[100px] sm:max-w-[130px] truncate">
-                  {user?.name || user?.email}
+                <span className="text-xs font-semibold text-slate-200 max-w-[90px] sm:max-w-[130px] truncate hidden sm:inline">
+                  {user?.name || user?.email?.split('@')[0]}
                 </span>
               </div>
 
-              {/* Botón Cerrar Sesión */}
+              {/* Botón Salir */}
               <button
+                type="button"
                 onClick={logout}
-                className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-1.5 rounded-full text-xs font-semibold text-slate-400 hover:text-rose-300 hover:bg-rose-500/15 border border-transparent hover:border-rose-500/30 transition-all duration-200 active:scale-95"
+                className="p-2 sm:px-3 sm:py-1.5 rounded-2xl text-xs font-semibold text-slate-400 hover:text-rose-300 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 transition-all duration-200 cursor-pointer flex items-center gap-1.5"
                 title="Cerrar sesión"
                 aria-label="Cerrar sesión"
               >
@@ -114,11 +99,12 @@ export function Header({
             </div>
           ) : (
             <button
+              type="button"
               onClick={() => onOpenAuth && onOpenAuth('login')}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold text-white bg-gradient-to-r from-amber-500 via-pink-500 to-cyan-500 hover:from-amber-600 hover:via-pink-600 hover:to-cyan-600 shadow-md shadow-pink-500/20 transition-all duration-200 active:scale-95"
-              title="Iniciar sesión o registrarse"
+              className="flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-bold text-white bg-slate-800 hover:bg-slate-700 border border-white/10 shadow-sm transition-all duration-200 active:scale-95 cursor-pointer"
+              title="Iniciar sesión"
             >
-              <LogIn className="w-3.5 h-3.5 text-amber-200" />
+              <LogIn className="w-4 h-4 text-amber-400 shrink-0" />
               <span>Iniciar Sesión</span>
             </button>
           )}
@@ -129,4 +115,3 @@ export function Header({
 }
 
 export default Header;
-

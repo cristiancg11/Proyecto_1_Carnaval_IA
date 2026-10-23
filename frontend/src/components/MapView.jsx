@@ -21,18 +21,11 @@ import {
 import {
   MapPin,
   Clock,
-  Sparkles,
   Locate,
-  Compass,
   Plus,
   Minus,
-  Calendar,
-  AlertTriangle,
   ChevronDown,
   ChevronUp,
-  ShieldAlert,
-  Utensils,
-  Navigation,
   X,
 } from 'lucide-react';
 
@@ -777,48 +770,42 @@ export function MapView({
 
   return (
     <div className="relative w-full h-full min-h-[500px] overflow-hidden shadow-2xl bg-slate-950">
-      {/* 1. Contenedor Superior Fijo: Banner de Día Controlado por IA y Filtros Rápidos */}
+      {/* 1. Contenedor Superior Fijo: Banner de Evento Activo y Filtros Rápidos */}
       <div className="absolute top-4 left-4 right-4 z-[1000] flex flex-col gap-2 pointer-events-none">
-        {/* Banner Flotante Superior Sutil (Controlado por IA) */}
-        <div className="pointer-events-auto flex items-center justify-between gap-3 px-4 py-2 rounded-2xl bg-slate-950/90 backdrop-blur-2xl border border-fuchsia-500/30 shadow-[0_8px_32px_rgba(217,70,239,0.25)] text-xs text-white max-w-xl">
+        {/* Banner Superior Sutil de Evento Oficial */}
+        <div className="pointer-events-auto flex items-center justify-between gap-3 px-4 py-2 rounded-2xl bg-slate-900/90 backdrop-blur-md border border-white/10 shadow-sm text-xs text-white max-w-xl">
           <div className="flex items-center gap-2.5 min-w-0">
-            <span className="flex h-2.5 w-2.5 relative shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-fuchsia-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-fuchsia-500 shadow-[0_0_8px_rgba(217,70,239,0.9)]"></span>
-            </span>
+            <span
+              className="w-2.5 h-2.5 rounded-full shrink-0"
+              style={{ backgroundColor: currentEvent.color || '#f59e0b' }}
+            />
             <div className="truncate">
-              <span className="text-slate-300">Visualizando en el mapa: </span>
-              <strong className="font-black bg-gradient-to-r from-amber-300 via-fuchsia-300 to-rose-300 bg-clip-text text-transparent">
+              <span className="text-slate-400">Evento en el mapa: </span>
+              <strong className="font-bold text-white">
                 {currentEvent.name}
               </strong>
             </div>
           </div>
-          <span className="shrink-0 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full centenary-badge text-amber-300 flex items-center gap-1 shadow-sm">
-            <Sparkles className="w-3 h-3 text-amber-400" />
-            <span>Centenario IA</span>
+          <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-xl bg-white/5 border border-white/10 text-slate-300">
+            {currentEvent.hours}
           </span>
         </div>
 
         {/* Barra Flotante de Filtros Rápidos */}
-        <div className="pointer-events-auto flex items-center gap-1.5 p-1.5 rounded-full backdrop-blur-lg bg-slate-900/85 border border-slate-800/80 shadow-[0_12px_40px_rgba(0,0,0,0.65)] w-max max-w-full overflow-x-auto no-scrollbar">
-          <span className="hidden sm:flex items-center gap-1.5 pl-3 pr-2 text-xs font-black tracking-wider uppercase bg-gradient-to-r from-amber-400 via-rose-300 to-purple-400 bg-clip-text text-transparent select-none">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-            <span>Filtros</span>
-          </span>
-
+        <div className="pointer-events-auto flex items-center gap-1.5 p-1.5 rounded-2xl backdrop-blur-md bg-slate-900/90 border border-white/10 shadow-sm w-max max-w-full overflow-x-auto no-scrollbar">
           {filterOptions.map((f) => {
             const isActive = activeFilter === f.id;
             return (
               <button
                 key={f.id}
                 onClick={() => setActiveFilter(f.id)}
-                className={`group flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-200 whitespace-nowrap active:scale-95 cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 whitespace-nowrap active:scale-95 cursor-pointer ${
                   isActive
-                    ? 'bg-gradient-to-r from-amber-500 via-pink-500 to-cyan-500 text-white shadow-md shadow-pink-500/30 scale-[1.03]'
-                    : 'text-slate-300 hover:text-white bg-slate-900/70 hover:bg-slate-800/90 border border-white/10 hover:border-pink-500/40 hover:shadow-md hover:shadow-pink-500/20'
+                    ? 'bg-amber-400 text-slate-950 shadow-sm font-black'
+                    : 'text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-750 border border-white/5'
                 }`}
               >
-                <span className="text-sm transition-transform duration-200 group-hover:scale-110">{f.icon}</span>
+                <span className="text-sm">{f.icon}</span>
                 <span>{f.label}</span>
               </button>
             );
@@ -827,33 +814,32 @@ export function MapView({
       </div>
 
       {/* 2. Tarjeta Informativa Flotante del Día Seleccionado y Estado de Vías */}
-      <div className="absolute bottom-5 left-4 z-[1000] max-w-sm sm:max-w-md w-[calc(100vw-2rem)] sm:w-auto backdrop-blur-lg bg-slate-900/85 p-4 rounded-2xl border border-slate-800/80 shadow-2xl text-slate-200 pointer-events-auto">
+      <div className="absolute bottom-5 left-4 z-[1000] max-w-sm sm:max-w-md w-[calc(100vw-2rem)] sm:w-auto backdrop-blur-md bg-slate-900/90 p-4 rounded-2xl border border-white/10 shadow-md text-slate-200 pointer-events-auto">
         <div className="flex items-start justify-between gap-3 border-b border-white/10 pb-2 mb-2">
           <div className="min-w-0">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
               <span
-                className="w-3 h-3 rounded-full shrink-0"
+                className="w-2.5 h-2.5 rounded-full shrink-0"
                 style={{
                   backgroundColor: currentEvent.color,
-                  boxShadow: `0 0 10px ${currentEvent.color}`,
                 }}
               />
-              <span className="text-[10px] font-black uppercase tracking-wider text-amber-300">
+              <span className="text-[10px] font-black uppercase tracking-wider text-amber-400">
                 Evento Oficial
               </span>
-              <span className="text-[10px] text-slate-300 font-mono bg-white/10 px-2 py-0.5 rounded-full border border-white/10 flex items-center gap-1">
-                <Clock className="w-3 h-3 text-amber-400" />
+              <span className="text-[10px] text-slate-300 font-mono bg-white/5 px-2 py-0.5 rounded-xl border border-white/10 flex items-center gap-1">
+                <Clock className="w-3 h-3 text-slate-400" />
                 <span>{currentEvent.hours}</span>
               </span>
             </div>
-            <h3 className="text-sm font-black text-white leading-tight">
+            <h3 className="text-sm font-bold text-white leading-tight">
               {currentEvent.name}
             </h3>
           </div>
           <button
             type="button"
             onClick={() => setIsCardMinimized(!isCardMinimized)}
-            className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition shrink-0"
+            className="text-slate-400 hover:text-white p-1 rounded-xl hover:bg-white/10 transition shrink-0 cursor-pointer"
             title={isCardMinimized ? 'Expandir información' : 'Minimizar información'}
           >
             {isCardMinimized ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -867,26 +853,26 @@ export function MapView({
             </p>
 
             {/* Badges de estado de vías */}
-            <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-white/[0.08]">
+            <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-white/5">
               {currentEvent.closedPoints && currentEvent.closedPoints.length > 0 ? (
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-[11px] font-bold">
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-[11px] font-medium">
                   <span>⛔</span>
                   <span>{currentEvent.closedPoints.length} Puntos de Cierre Vial</span>
                 </div>
               ) : (
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[11px] font-bold">
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-[11px] font-medium">
                   <span>✅</span>
                   <span>Vías Urbanas Despejadas</span>
                 </div>
               )}
 
               {currentEvent.route && currentEvent.route.length > 0 ? (
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-violet-500/15 border border-violet-500/30 text-violet-300 text-[11px] font-bold">
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-800 border border-white/10 text-slate-300 text-[11px] font-medium">
                   <span>🎉</span>
                   <span>Ruta Oficial Trazada</span>
                 </div>
               ) : (
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-[11px] font-bold">
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-800 border border-white/10 text-slate-300 text-[11px] font-medium">
                   <span>🚶</span>
                   <span>Sector Peatonal Cultural</span>
                 </div>
@@ -907,7 +893,7 @@ export function MapView({
               )}
             </div>
 
-            <p className="text-[10px] text-slate-400 pt-1 border-t border-white/[0.08] flex items-center justify-between">
+            <p className="text-[10px] text-slate-400 pt-1 border-t border-white/5 flex items-center justify-between">
               <span>💡 Clic en los ⛔ para ver el horario del cierre</span>
               <span className="text-amber-400 font-bold">Pasto 2026</span>
             </p>
@@ -917,20 +903,17 @@ export function MapView({
 
       {/* 2.1 Tarjeta Flotante de Navegación Activa por Calles */}
       {navRoute && (
-        <div className="absolute bottom-20 sm:bottom-6 left-1/2 -translate-x-1/2 z-[1100] flex items-center gap-3.5 px-5 py-3.5 backdrop-blur-lg bg-slate-900/85 border border-slate-800/80 rounded-2xl shadow-2xl shadow-blue-500/20 text-white pointer-events-auto animate-in fade-in">
+        <div className="absolute bottom-20 sm:bottom-6 left-1/2 -translate-x-1/2 z-[1100] flex items-center gap-3.5 px-4 py-3 backdrop-blur-md bg-slate-900/90 border border-white/10 rounded-2xl shadow-lg text-white pointer-events-auto animate-in fade-in">
           <div className="flex items-center gap-2.5">
-            <span className="relative flex h-3 w-3 shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
-            </span>
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shrink-0" />
             <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-              <span className="text-xs sm:text-sm font-black whitespace-nowrap">
-                🧭 Navegando hacia: <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-pink-400 to-cyan-300 font-black">{navRoute.targetName}</span>
+              <span className="text-xs sm:text-sm font-bold whitespace-nowrap">
+                🧭 Navegando hacia: <span className="text-amber-400 font-black">{navRoute.targetName}</span>
               </span>
               {displayDistance && (
-                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 w-max flex items-center gap-1">
+                <span className="text-[11px] font-medium px-2 py-0.5 rounded-xl bg-white/5 text-slate-300 border border-white/10 w-max flex items-center gap-1">
                   <span>🚶 {displayDistance}</span>
-                  {isRouting && <span className="text-[10px] text-amber-300 animate-pulse">(trazando...)</span>}
+                  {isRouting && <span className="text-[10px] text-amber-400 animate-pulse">(trazando...)</span>}
                 </span>
               )}
             </div>
@@ -938,11 +921,11 @@ export function MapView({
           <button
             type="button"
             onClick={() => setNavRoute && setNavRoute(null)}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-red-600 via-rose-600 to-pink-600 hover:from-red-500 hover:via-rose-500 hover:to-pink-500 text-white text-xs font-black shadow-lg shadow-rose-600/35 hover:shadow-rose-600/50 active:scale-95 hover:animate-bounce-short transition-all duration-200 cursor-pointer ml-1 whitespace-nowrap"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-bold transition cursor-pointer ml-1 whitespace-nowrap active:scale-95"
             title="Finalizar navegación asistida"
           >
-            <X className="w-3.5 h-3.5 stroke-[2.5]" />
-            <span>Finalizar Navegación</span>
+            <X className="w-3.5 h-3.5" />
+            <span>Finalizar</span>
           </button>
         </div>
       )}

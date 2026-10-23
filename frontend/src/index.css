@@ -10,7 +10,7 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: #030712;
+  background-color: #0b1120;
   color: #f8fafc;
   font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   overflow-x: hidden;
@@ -18,47 +18,49 @@ body {
 
 /* Glassmorphism Utilities */
 .glass-panel {
-  background: rgba(10, 16, 32, 0.72);
+  background: rgba(15, 23, 42, 0.78);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.5), inset 0 1px 1px 0 rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.5), inset 0 1px 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .glass-andean-card {
-  background: rgba(15, 23, 42, 0.75);
+  background: rgba(15, 23, 42, 0.82);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.65), 0 0 25px -5px rgba(244, 63, 94, 0.18);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.65), 0 0 25px -5px rgba(56, 189, 248, 0.15);
 }
 
 .centenary-badge {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.16) 0%, rgba(244, 63, 94, 0.2) 50%, rgba(139, 92, 246, 0.16) 100%);
-  border: 1px solid rgba(251, 191, 36, 0.4);
-  box-shadow: 0 0 20px rgba(245, 158, 11, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.25);
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.18) 0%, rgba(6, 182, 212, 0.18) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.3);
 }
 
 .glass-pill {
-  background: rgba(15, 23, 42, 0.65);
+  background: rgba(15, 23, 42, 0.75);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), inset 0 1px 1px 0 rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), inset 0 1px 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .glass-pill:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(30, 41, 59, 0.85);
+  border-color: rgba(56, 189, 248, 0.4);
 }
 
 /* Modern Button Classes */
 .btn-primary-glow {
-  background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 50%, #f59e0b 100%);
+  background: linear-gradient(135deg, #4f46e5 0%, #2563eb 50%, #06b6d4 100%);
   color: #ffffff;
-  font-weight: 700;
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: 0.025em;
   border-radius: 9999px;
-  box-shadow: 0 0 20px -3px rgba(217, 70, 239, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 25px -3px rgba(37, 99, 235, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.4);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   overflow: hidden;
@@ -66,7 +68,7 @@ body {
 
 .btn-primary-glow:hover {
   transform: translateY(-1.5px) scale(1.02);
-  box-shadow: 0 0 28px 0px rgba(217, 70, 239, 0.7), inset 0 1px 1px rgba(255, 255, 255, 0.45);
+  box-shadow: 0 0 32px 0px rgba(6, 182, 212, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.5);
 }
 
 .btn-primary-glow:active {
@@ -100,7 +102,7 @@ body {
 .leaflet-container {
   width: 100%;
   height: 100%;
-  background-color: #030712 !important;
+  background-color: #0b1120 !important;
   outline: none;
   font-family: inherit;
 }
@@ -118,59 +120,32 @@ body {
   overflow: hidden;
 }
 
-.leaflet-popup-tip-container {
-  overflow: hidden;
-}
-
-.leaflet-popup-tip {
-  background: rgba(8, 13, 26, 0.9) !important;
-  border: 1px solid rgba(255, 255, 255, 0.14) !important;
-  box-shadow: none !important;
-}
-
-.leaflet-popup-content {
-  margin: 14px 16px !important;
-  line-height: 1.5 !important;
-  color: #f1f5f9 !important;
-}
-
-.leaflet-popup-close-button {
-  color: #94a3b8 !important;
-  padding: 8px 10px !important;
-  transition: all 0.2s ease !important;
-}
-
-.leaflet-popup-close-button:hover {
-  color: #f43f5e !important;
-  transform: scale(1.15);
-}
-
 /* Custom Scrollbars */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(3, 7, 18, 0.8);
+  background: rgba(11, 17, 32, 0.8);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.18);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(217, 70, 239, 0.4);
+  background: rgba(6, 182, 212, 0.5);
 }
 
-/* Festive Glowing Animations */
+/* Glowing Animations */
 @keyframes neon-pulse {
   0%, 100% {
-    box-shadow: 0 0 15px rgba(217, 70, 239, 0.4), 0 0 30px rgba(139, 92, 246, 0.2);
+    box-shadow: 0 0 15px rgba(6, 182, 212, 0.4), 0 0 30px rgba(99, 102, 241, 0.25);
   }
   50% {
-    box-shadow: 0 0 25px rgba(217, 70, 239, 0.7), 0 0 50px rgba(245, 158, 11, 0.35);
+    box-shadow: 0 0 25px rgba(6, 182, 212, 0.7), 0 0 50px rgba(56, 189, 248, 0.4);
   }
 }
 
