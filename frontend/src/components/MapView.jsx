@@ -26,6 +26,7 @@ import {
   Minus,
   ChevronDown,
   ChevronUp,
+  Navigation,
   X,
 } from 'lucide-react';
 
@@ -629,7 +630,7 @@ export function MapView({
   // Día seleccionado del Carnaval (controlado dinámicamente por la IA desde App.jsx)
   const [internalDay, setInternalDay] = useState('06-ene');
   const selectedDay = propCurrentCarnivalDay || propSelectedDay || internalDay;
-  const setSelectedDay = (day) => {
+  const _setSelectedDay = (day) => {
     setInternalDay(day);
     if (propOnSelectDay) {
       propOnSelectDay(day);
@@ -770,39 +771,40 @@ export function MapView({
 
   return (
     <div className="relative w-full h-full min-h-[500px] overflow-hidden shadow-2xl bg-slate-950">
-      {/* 1. Contenedor Superior Fijo: Banner de Evento Activo y Filtros Rápidos */}
+      {/* 1. Contenedor Superior Fijo: Banner de Evento Activo y Chips de Filtros Tipo Píldora */}
       <div className="absolute top-4 left-4 right-4 z-[1000] flex flex-col gap-2 pointer-events-none">
         {/* Banner Superior Sutil de Evento Oficial */}
-        <div className="pointer-events-auto flex items-center justify-between gap-3 px-4 py-2 rounded-2xl bg-slate-900/90 backdrop-blur-md border border-white/10 shadow-sm text-xs text-white max-w-xl">
-          <div className="flex items-center gap-2.5 min-w-0">
+        <div className="pointer-events-auto flex items-center justify-between gap-3 px-3.5 py-1.5 rounded-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200/50 dark:border-slate-800/50 shadow-sm text-xs max-w-lg">
+          <div className="flex items-center gap-2 min-w-0">
             <span
-              className="w-2.5 h-2.5 rounded-full shrink-0"
+              className="w-2 h-2 rounded-full shrink-0"
               style={{ backgroundColor: currentEvent.color || '#f59e0b' }}
             />
-            <div className="truncate">
-              <span className="text-slate-400">Evento en el mapa: </span>
-              <strong className="font-bold text-white">
+            <div className="truncate text-slate-600 dark:text-slate-300">
+              <span className="hidden sm:inline text-slate-400">Evento: </span>
+              <strong className="font-bold text-slate-900 dark:text-white">
                 {currentEvent.name}
               </strong>
             </div>
           </div>
-          <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-xl bg-white/5 border border-white/10 text-slate-300">
+          <span className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300">
             {currentEvent.hours}
           </span>
         </div>
 
-        {/* Barra Flotante de Filtros Rápidos */}
-        <div className="pointer-events-auto flex items-center gap-1.5 p-1.5 rounded-2xl backdrop-blur-md bg-slate-900/90 border border-white/10 shadow-sm w-max max-w-full overflow-x-auto no-scrollbar">
+        {/* Chips de Categorías (Filtros del Mapa) tipo Píldora (Pill Badges) */}
+        <div className="pointer-events-auto flex items-center gap-2 max-w-full overflow-x-auto no-scrollbar py-0.5">
           {filterOptions.map((f) => {
             const isActive = activeFilter === f.id;
             return (
               <button
                 key={f.id}
+                type="button"
                 onClick={() => setActiveFilter(f.id)}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 whitespace-nowrap active:scale-95 cursor-pointer ${
+                className={`rounded-full px-4 py-1.5 text-xs font-medium transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap active:scale-95 cursor-pointer backdrop-blur-sm ${
                   isActive
-                    ? 'bg-amber-400 text-slate-950 shadow-sm font-black'
-                    : 'text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-750 border border-white/5'
+                    ? 'bg-slate-900 dark:bg-gradient-to-r dark:from-amber-500 dark:to-orange-500 text-white shadow-md font-semibold'
+                    : 'bg-white/90 dark:bg-slate-800/90 shadow-sm border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                 }`}
               >
                 <span className="text-sm">{f.icon}</span>
@@ -813,90 +815,88 @@ export function MapView({
         </div>
       </div>
 
-      {/* 2. Tarjeta Informativa Flotante del Día Seleccionado y Estado de Vías */}
-      <div className="absolute bottom-5 left-4 z-[1000] max-w-sm sm:max-w-md w-[calc(100vw-2rem)] sm:w-auto backdrop-blur-md bg-slate-900/90 p-4 rounded-2xl border border-white/10 shadow-md text-slate-200 pointer-events-auto">
-        <div className="flex items-start justify-between gap-3 border-b border-white/10 pb-2 mb-2">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <span
-                className="w-2.5 h-2.5 rounded-full shrink-0"
-                style={{
-                  backgroundColor: currentEvent.color,
-                }}
-              />
-              <span className="text-[10px] font-black uppercase tracking-wider text-amber-400">
-                Evento Oficial
-              </span>
-              <span className="text-[10px] text-slate-300 font-mono bg-white/5 px-2 py-0.5 rounded-xl border border-white/10 flex items-center gap-1">
-                <Clock className="w-3 h-3 text-slate-400" />
-                <span>{currentEvent.hours}</span>
-              </span>
-            </div>
-            <h3 className="text-sm font-bold text-white leading-tight">
-              {currentEvent.name}
-            </h3>
-          </div>
+      {/* 2. Tarjeta Flotante Compacta de "Evento Oficial" con Bordes rounded-3xl */}
+      <div className="absolute bottom-5 left-4 z-[1000] pointer-events-auto">
+        {isCardMinimized ? (
+          /* Estado Colapsado: Píldora ultra-compacta para ver el mapa completamente despejado */
           <button
             type="button"
-            onClick={() => setIsCardMinimized(!isCardMinimized)}
-            className="text-slate-400 hover:text-white p-1 rounded-xl hover:bg-white/10 transition shrink-0 cursor-pointer"
-            title={isCardMinimized ? 'Expandir información' : 'Minimizar información'}
+            onClick={() => setIsCardMinimized(false)}
+            className="flex items-center gap-2 px-3.5 py-2 rounded-full backdrop-blur-md bg-white/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-800/60 shadow-md text-xs font-bold text-slate-800 dark:text-slate-200 hover:scale-[1.02] transition cursor-pointer"
+            title="Expandir información del evento"
           >
-            {isCardMinimized ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            <span
+              className="w-2 h-2 rounded-full shrink-0"
+              style={{ backgroundColor: currentEvent.color }}
+            />
+            <span className="truncate max-w-[170px] sm:max-w-none">{currentEvent.name}</span>
+            <span className="text-[10px] text-slate-400 font-mono">({currentEvent.hours})</span>
+            <ChevronUp className="w-3.5 h-3.5 text-amber-500 ml-1 shrink-0" />
           </button>
-        </div>
-
-        {!isCardMinimized && (
-          <div className="space-y-2.5 text-xs">
-            <p className="text-slate-300 leading-relaxed text-[11px]">
-              {currentEvent.description}
-            </p>
-
-            {/* Badges de estado de vías */}
-            <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-white/5">
-              {currentEvent.closedPoints && currentEvent.closedPoints.length > 0 ? (
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-[11px] font-medium">
-                  <span>⛔</span>
-                  <span>{currentEvent.closedPoints.length} Puntos de Cierre Vial</span>
+        ) : (
+          /* Estado Expandido: Tarjeta limpia y compacta */
+          <div className="max-w-xs sm:max-w-sm w-[calc(100vw-2rem)] sm:w-auto backdrop-blur-md bg-white/90 dark:bg-slate-900/90 p-3.5 rounded-3xl border border-slate-200/60 dark:border-slate-800/60 shadow-lg text-slate-700 dark:text-slate-200 transition-all">
+            <div className="flex items-start justify-between gap-2 border-b border-slate-100 dark:border-white/5 pb-2 mb-2">
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <span
+                    className="w-2 h-2 rounded-full shrink-0"
+                    style={{ backgroundColor: currentEvent.color }}
+                  />
+                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-500">
+                    Evento Oficial
+                  </span>
+                  <span className="text-[10px] font-mono text-slate-400 bg-slate-100 dark:bg-white/5 px-1.5 py-0.2 rounded-md">
+                    {currentEvent.hours}
+                  </span>
                 </div>
-              ) : (
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-[11px] font-medium">
-                  <span>✅</span>
-                  <span>Vías Urbanas Despejadas</span>
-                </div>
-              )}
-
-              {currentEvent.route && currentEvent.route.length > 0 ? (
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-800 border border-white/10 text-slate-300 text-[11px] font-medium">
-                  <span>🎉</span>
-                  <span>Ruta Oficial Trazada</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-800 border border-white/10 text-slate-300 text-[11px] font-medium">
-                  <span>🚶</span>
-                  <span>Sector Peatonal Cultural</span>
-                </div>
-              )}
-
-              {currentEvent.startPoint && (
-                <div className="w-full flex items-center gap-1.5 text-slate-300 text-[10px] mt-1">
-                  <span className="text-emerald-400 font-bold shrink-0">🏁 Salida:</span>
-                  <span className="truncate">{currentEvent.startPoint.label.replace(/^Salida:\s*/i, '')}</span>
-                </div>
-              )}
-
-              {currentEvent.endPoint && (
-                <div className="w-full flex items-center gap-1.5 text-slate-300 text-[10px]">
-                  <span className="text-rose-400 font-bold shrink-0">🏆 Llegada:</span>
-                  <span className="truncate">{currentEvent.endPoint.label.replace(/^Llegada:\s*/i, '')}</span>
-                </div>
-              )}
+                <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white leading-tight truncate">
+                  {currentEvent.name}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsCardMinimized(true)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-white/10 transition shrink-0 cursor-pointer"
+                title="Colapsar información para despejar el mapa"
+                aria-label="Colapsar información"
+              >
+                <ChevronDown className="w-4 h-4" />
+              </button>
             </div>
 
-            <p className="text-[10px] text-slate-400 pt-1 border-t border-white/5 flex items-center justify-between">
-              <span>💡 Clic en los ⛔ para ver el horario del cierre</span>
-              <span className="text-amber-400 font-bold">Pasto 2026</span>
-            </p>
+            <div className="space-y-2 text-xs">
+              <p className="text-slate-500 dark:text-slate-300 text-[11px] leading-snug line-clamp-2">
+                {currentEvent.description}
+              </p>
+
+              {/* Badges de estado de vías */}
+              <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-slate-100 dark:border-white/5">
+                {currentEvent.closedPoints && currentEvent.closedPoints.length > 0 ? (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-300 text-[10px] font-medium">
+                    <span>⛔</span>
+                    <span>{currentEvent.closedPoints.length} Puntos Cierre</span>
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-300 text-[10px] font-medium">
+                    <span>✅</span>
+                    <span>Vías Despejadas</span>
+                  </span>
+                )}
+
+                {currentEvent.route && currentEvent.route.length > 0 ? (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 text-[10px] font-medium">
+                    <span>🎉</span>
+                    <span>Ruta Trazada</span>
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 text-[10px] font-medium">
+                    <span>🚶</span>
+                    <span>Zona Peatonal</span>
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>

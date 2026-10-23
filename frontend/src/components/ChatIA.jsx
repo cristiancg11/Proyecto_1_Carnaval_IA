@@ -104,7 +104,7 @@ export function ChatIA({ isOpen: controlledOpen, onClose: controlledClose }) {
           { headers: { 'Content-Type': 'application/json' }, timeout: 10000 }
         );
         replyText = res.data?.response || res.data?.reply;
-      } catch (directErr) {
+      } catch (_err) {
         try {
           const fallbackRes = await api.sendChatMessage({ message: text });
           replyText = fallbackRes?.response || fallbackRes?.reply;
@@ -158,19 +158,19 @@ export function ChatIA({ isOpen: controlledOpen, onClose: controlledClose }) {
           id="open-chat-fab"
           type="button"
           onClick={handleToggle}
-          className="fixed bottom-6 right-6 z-[1050] flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-slate-900/95 hover:bg-slate-850 text-white font-bold text-xs sm:text-sm border border-white/10 shadow-xl hover:shadow-2xl transition-all duration-200 hover:-translate-y-0.5 active:scale-95 cursor-pointer group animate-in fade-in zoom-in-90"
+          className="fixed bottom-6 right-6 z-[1050] flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-white font-bold text-xs sm:text-sm border border-white/20 shadow-xl shadow-orange-500/25 hover:shadow-orange-500/40 transition-all duration-200 hover:-translate-y-0.5 active:scale-95 cursor-pointer group animate-in fade-in zoom-in-90"
           aria-label="Abrir chat con GuaneñaBot"
           title="Abrir GuaneñaBot - Tu guía en el Carnaval de Pasto"
         >
           <div className="relative flex items-center justify-center w-6 h-6 text-base">
             🎭
             <span className="absolute -top-1 -right-1 flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-400"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
             </span>
           </div>
           <span className="font-extrabold tracking-wide">GuaneñaBot</span>
-          <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+          <Sparkles className="w-3.5 h-3.5 text-white/90 shrink-0" />
         </button>
       )}
 
@@ -179,12 +179,12 @@ export function ChatIA({ isOpen: controlledOpen, onClose: controlledClose }) {
         <div
           role="complementary"
           aria-label="Ventana de GuaneñaBot"
-          className="fixed bottom-6 right-4 sm:right-6 z-[1100] w-[calc(100vw-2rem)] sm:w-[380px] h-[500px] max-h-[85vh] rounded-2xl bg-slate-900/95 backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/60 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200"
+          className="fixed bottom-6 right-4 sm:right-6 z-[1100] w-[calc(100vw-2rem)] sm:w-[380px] h-[500px] max-h-[85vh] rounded-3xl bg-slate-900/95 backdrop-blur-xl border border-slate-700/50 shadow-2xl shadow-black/60 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200"
         >
           {/* Header */}
           <header className="px-4 py-3.5 border-b border-white/10 bg-slate-950/60 flex items-center justify-between gap-2 select-none">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="relative flex items-center justify-center w-8 h-8 rounded-xl bg-slate-800/80 border border-white/10 text-base shadow-sm shrink-0">
+              <div className="relative flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white shadow-sm shrink-0 text-base">
                 🎭
                 <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-slate-900" />
               </div>
@@ -239,7 +239,7 @@ export function ChatIA({ isOpen: controlledOpen, onClose: controlledClose }) {
                     <div
                       className={`px-3.5 py-2.5 rounded-2xl text-xs sm:text-[13px] leading-relaxed shadow-sm ${
                         isUser
-                          ? 'bg-amber-400 text-slate-950 font-medium rounded-br-sm'
+                          ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium rounded-br-sm'
                           : 'bg-slate-800/90 text-slate-100 border border-white/10 rounded-bl-sm'
                       }`}
                     >
@@ -316,7 +316,7 @@ export function ChatIA({ isOpen: controlledOpen, onClose: controlledClose }) {
               id="guanena-chat-send-btn"
               type="submit"
               disabled={!inputMessage.trim() || loading}
-              className="p-2.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold active:scale-95 transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-sm shrink-0"
+              className="p-2.5 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-bold active:scale-95 transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-md shadow-orange-500/20 shrink-0"
               aria-label="Enviar mensaje a GuaneñaBot"
               title="Enviar mensaje"
             >

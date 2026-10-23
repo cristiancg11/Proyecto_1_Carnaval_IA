@@ -82,16 +82,16 @@ export function LoginView() {
       {/* Fondo sutil con resplandor suave */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950 pointer-events-none" />
 
-      {/* Tarjeta centrada con estilo pulido */}
-      <div className="relative w-full max-w-sm sm:max-w-md p-8 sm:p-9 rounded-2xl bg-slate-900/90 backdrop-blur-xl border border-white/10 shadow-2xl z-10">
+      {/* Tarjeta centrada con estilo pulido Glassmorphic */}
+      <div className="relative w-full max-w-sm sm:max-w-md p-8 sm:p-9 rounded-3xl bg-slate-900/90 backdrop-blur-xl border border-slate-700/50 shadow-2xl z-10">
         {/* Encabezado e identidad */}
         <div className="flex flex-col items-center text-center mb-6">
-          <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-slate-800/80 border border-white/10 text-2xl mb-3 shadow-sm">
+          <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white text-2xl mb-3 shadow-md shadow-orange-500/20">
             🎭
           </div>
 
           <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
-            Carnaval<span className="text-amber-400">IA</span>
+            Carnaval<span className="bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">IA</span>
           </h1>
           <p className="text-xs text-slate-400 mt-1 font-medium">
             {isRegister
@@ -182,11 +182,11 @@ export function LoginView() {
             id="auth-submit-btn"
             type="submit"
             disabled={loading}
-            className="w-full mt-2 py-3 px-4 rounded-2xl font-bold text-sm text-slate-950 bg-amber-400 hover:bg-amber-300 active:scale-[0.99] shadow-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full mt-2 py-3 px-4 rounded-2xl font-bold text-sm text-white bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-400 hover:via-orange-400 hover:to-rose-400 active:scale-[0.99] shadow-md shadow-orange-500/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
           >
             {loading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
+                <Loader2 className="w-4 h-4 animate-spin text-white" />
                 <span>{isRegister ? 'Creando cuenta...' : 'Iniciando sesión...'}</span>
               </>
             ) : (

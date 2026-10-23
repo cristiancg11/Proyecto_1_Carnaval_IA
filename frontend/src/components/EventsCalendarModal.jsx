@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Calendar, Clock, MapPin, Sparkles, ChevronRight, AlertCircle, ArrowUpRight } from 'lucide-react';
+import { X, Calendar, Clock, Sparkles, ArrowUpRight } from 'lucide-react';
 import { CARNIVAL_DAYS, CARNIVAL_ROUTES } from '../data/carnivalRoutes';
 
 export function EventsCalendarModal({
@@ -30,12 +30,12 @@ export function EventsCalendarModal({
       />
 
       {/* Contenedor Modal */}
-      <div className="relative w-full max-w-4xl max-h-[90vh] bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-4xl max-h-[90vh] bg-slate-900/95 backdrop-blur-xl border border-slate-700/50 rounded-3xl shadow-2xl flex flex-col overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200">
         {/* Encabezado */}
-        <header className="px-6 py-5 border-b border-white/10 flex items-center justify-between gap-4 bg-slate-950/50">
+        <header className="px-6 py-5 border-b border-white/10 flex items-center justify-between gap-4 bg-slate-950/60">
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-11 h-11 rounded-2xl bg-slate-800/80 border border-white/10 text-amber-400 shadow-sm">
-              <Calendar className="w-5 h-5" />
+            <div className="flex items-center justify-center w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white shadow-md shadow-orange-500/20 shrink-0">
+              <Calendar className="w-5 h-5 text-white" />
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -133,7 +133,7 @@ export function EventsCalendarModal({
                       }}
                       className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                         isSelected
-                          ? 'bg-amber-500 text-slate-950 font-black shadow-sm'
+                          ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold shadow-sm'
                           : 'bg-white/5 group-hover:bg-amber-500/20 text-slate-300 group-hover:text-amber-300 border border-white/10'
                       }`}
                     >
