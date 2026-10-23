@@ -14,7 +14,7 @@ export function Header({
   const { user, isAuthenticated, logout } = useAuth();
 
   return (
-    <header className="sticky top-0 z-30 w-full backdrop-blur-md bg-white/80 dark:bg-slate-900/80 border-b border-slate-200/50 dark:border-slate-800/50 px-4 sm:px-6 py-2.5 transition-all shadow-sm">
+    <header className="sticky top-0 z-30 w-full bg-white/85 dark:bg-slate-900/85 backdrop-blur-md border-b border-slate-200/60 dark:border-slate-800/60 px-4 sm:px-6 py-2.5 transition-all shadow-sm">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         {/* 1. Logotipo e identidad visual ("CarnavalIA") */}
         <div

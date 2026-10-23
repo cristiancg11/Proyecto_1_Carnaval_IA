@@ -32,9 +32,9 @@ export function CitizenReportsModal({
         aria-hidden="true"
       />
 
-      <div className="relative w-full max-w-3xl max-h-[90vh] bg-slate-900/95 backdrop-blur-xl border border-slate-700/50 rounded-3xl shadow-2xl flex flex-col overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200 text-slate-100">
+      <div className="relative w-full max-w-3xl max-h-[90vh] bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/60 rounded-3xl shadow-2xl flex flex-col overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200 text-slate-800 dark:text-slate-100">
         {/* Encabezado */}
-        <header className="px-6 py-5 border-b border-white/10 flex items-center justify-between gap-4 bg-slate-950/60">
+        <header className="px-6 py-5 border-b border-slate-200/60 dark:border-white/10 flex items-center justify-between gap-4 bg-slate-50/70 dark:bg-slate-950/60">
           <div className="flex items-center gap-3 min-w-0">
             <div className="flex items-center justify-center w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white shadow-md shadow-orange-500/20 shrink-0">
               <ShieldAlert className="w-5 h-5 text-white" />
@@ -79,10 +79,10 @@ export function CitizenReportsModal({
         </header>
 
         {/* Barra de Filtros por Nivel de Riesgo */}
-        <div className="px-6 py-3 border-b border-white/5 bg-slate-950/40 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
+        <div className="px-6 py-3 border-b border-slate-200/60 dark:border-white/5 bg-slate-50/50 dark:bg-slate-950/40 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
           <div className="flex items-center gap-1.5">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider pr-1 flex items-center gap-1">
-              <Filter className="w-3 h-3 text-slate-400" />
+            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider pr-1 flex items-center gap-1">
+              <Filter className="w-3 h-3 text-slate-500 dark:text-slate-400" />
               <span>Filtrar:</span>
             </span>
 
@@ -91,8 +91,8 @@ export function CitizenReportsModal({
               onClick={() => setFilterRisk('todos')}
               className={`px-3 py-1 rounded-full text-xs font-semibold transition active:scale-95 cursor-pointer ${
                 filterRisk === 'todos'
-                  ? 'bg-slate-800 text-white border border-white/20'
-                  : 'text-slate-400 hover:text-white bg-white/5'
+                  ? 'bg-slate-900 dark:bg-slate-800 text-white border border-slate-700/50'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-white/5'
               }`}
             >
               Todos ({reports.length})
@@ -168,7 +168,7 @@ export function CitizenReportsModal({
               return (
                 <div
                   key={report.id}
-                  className="p-4 rounded-2xl bg-slate-950/40 hover:bg-slate-800/50 border border-white/10 hover:border-white/20 transition-all flex flex-col justify-between gap-2"
+                  className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/40 hover:bg-slate-100/80 dark:hover:bg-slate-800/50 border border-slate-200/70 dark:border-white/10 transition-all flex flex-col justify-between gap-2 shadow-sm"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -178,21 +178,21 @@ export function CitizenReportsModal({
                         >
                           Riesgo {report.ai_risk_level || 'Bajo'}
                         </span>
-                        <span className="text-[10px] font-mono text-slate-400 bg-white/5 px-2 py-0.5 rounded-full border border-white/5">
+                        <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 bg-slate-200/60 dark:bg-white/5 px-2 py-0.5 rounded-full border border-slate-200 dark:border-white/5">
                           {report.category || 'Incidencia'}
                         </span>
                       </div>
-                      <h4 className="text-sm font-bold text-white leading-snug">
+                      <h4 className="text-sm font-bold text-slate-900 dark:text-white leading-snug">
                         {report.title}
                       </h4>
                       {report.description && (
-                        <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                        <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
                           {report.description}
                         </p>
                       )}
                     </div>
 
-                    <span className="text-[11px] text-slate-400 font-mono flex items-center gap-1 shrink-0">
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono flex items-center gap-1 shrink-0">
                       <Clock className="w-3 h-3 text-slate-400" />
                       {report.created_at
                         ? new Date(report.created_at).toLocaleTimeString([], {
@@ -203,14 +203,14 @@ export function CitizenReportsModal({
                     </span>
                   </div>
 
-                  <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-400">
-                    <span className="flex items-center gap-1 text-slate-300">
-                      <MapPin className="w-3 h-3 text-amber-400" />
+                  <div className="pt-2 border-t border-slate-200/60 dark:border-white/5 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                    <span className="flex items-center gap-1 text-slate-700 dark:text-slate-300 font-mono">
+                      <MapPin className="w-3 h-3 text-amber-500" />
                       <span>
                         {report.latitude?.toFixed(4)}, {report.longitude?.toFixed(4)}
                       </span>
                     </span>
-                    <span className="font-semibold text-emerald-400">
+                    <span className="font-semibold text-emerald-600 dark:text-emerald-400">
                       Estado: {report.status || 'Activo'}
                     </span>
                   </div>
@@ -221,12 +221,12 @@ export function CitizenReportsModal({
         </div>
 
         {/* Footer */}
-        <footer className="px-6 py-3.5 border-t border-white/10 bg-slate-950/60 flex items-center justify-between text-xs text-slate-400">
+        <footer className="px-6 py-3.5 border-t border-slate-200/60 dark:border-white/10 bg-slate-50/70 dark:bg-slate-950/60 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
           <span>Los reportes son analizados y geolocalizados en el mapa del Carnaval</span>
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-medium transition cursor-pointer"
+            className="px-4 py-1.5 rounded-xl bg-slate-200/70 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-800 dark:text-white font-medium transition cursor-pointer"
           >
             Cerrar
           </button>

@@ -774,7 +774,7 @@ export function MapView({
       {/* 1. Contenedor Superior Fijo: Banner de Evento Activo y Chips de Filtros Tipo Píldora */}
       <div className="absolute top-4 left-4 right-4 z-[1000] flex flex-col gap-2 pointer-events-none">
         {/* Banner Superior Sutil de Evento Oficial */}
-        <div className="pointer-events-auto flex items-center justify-between gap-3 px-3.5 py-1.5 rounded-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200/50 dark:border-slate-800/50 shadow-sm text-xs max-w-lg">
+        <div className="pointer-events-auto flex items-center justify-between gap-3 px-3.5 py-1.5 rounded-full bg-white/85 dark:bg-slate-900/85 backdrop-blur-md border border-slate-200/60 dark:border-slate-800/60 shadow-sm text-xs max-w-lg">
           <div className="flex items-center gap-2 min-w-0">
             <span
               className="w-2 h-2 rounded-full shrink-0"
@@ -822,7 +822,7 @@ export function MapView({
           <button
             type="button"
             onClick={() => setIsCardMinimized(false)}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-full backdrop-blur-md bg-white/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-800/60 shadow-md text-xs font-bold text-slate-800 dark:text-slate-200 hover:scale-[1.02] transition cursor-pointer"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-full backdrop-blur-md bg-white/85 dark:bg-slate-900/85 border border-slate-200/60 dark:border-slate-800/60 shadow-sm hover:shadow-md text-xs font-bold text-slate-800 dark:text-slate-200 hover:scale-[1.02] transition cursor-pointer"
             title="Expandir información del evento"
           >
             <span
@@ -835,7 +835,7 @@ export function MapView({
           </button>
         ) : (
           /* Estado Expandido: Tarjeta limpia y compacta */
-          <div className="max-w-xs sm:max-w-sm w-[calc(100vw-2rem)] sm:w-auto backdrop-blur-md bg-white/90 dark:bg-slate-900/90 p-3.5 rounded-3xl border border-slate-200/60 dark:border-slate-800/60 shadow-lg text-slate-700 dark:text-slate-200 transition-all">
+          <div className="max-w-xs sm:max-w-sm w-[calc(100vw-2rem)] sm:w-auto backdrop-blur-md bg-white/85 dark:bg-slate-900/85 p-3.5 rounded-3xl border border-slate-200/60 dark:border-slate-800/60 shadow-sm text-slate-700 dark:text-slate-200 transition-all">
             <div className="flex items-start justify-between gap-2 border-b border-slate-100 dark:border-white/5 pb-2 mb-2">
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5 mb-0.5">
