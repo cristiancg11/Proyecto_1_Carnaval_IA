@@ -213,6 +213,7 @@ export function App() {
         {/* Componente del Asistente GuaneñaBot (Chatbot UI Flotante en esquina inferior derecha) */}
         <ChatIA
           isOpen={chatOpen}
+          onToggle={setChatOpen}
           onClose={() => setChatOpen(false)}
         />
       </main>

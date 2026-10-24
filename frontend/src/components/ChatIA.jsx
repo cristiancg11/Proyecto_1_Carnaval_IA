@@ -19,24 +19,30 @@ const LOCAL_FALLBACK_ANSWERS = {
     '¡La gastronomía tradicional de Pasto es inigualable!\n• Frito Pastuso (trozos de cerdo dorado crujiente con crispetas, papa pastusa al vapor y ají de maní): Encuéntralo en los mesones tradicionales del Centro Histórico, Bomboná y la Calle 18.\n• Cuy Asado a la brasa: El destino imperdible es el Corregimiento de Catambuco y Obonuco (sede del Festival del Cuy el 7 de enero), con asaderos típicos reconocidos por su sabor andino.',
 };
 
-export function ChatIA({ isOpen: controlledOpen, onClose: controlledClose }) {
-  // Manejo de estado interno o controlado desde props
-  const [internalOpen, setInternalOpen] = useState(false);
-  const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
-  const handleToggle = () => {
-    if (controlledClose && isOpen) {
-      controlledClose();
-    } else {
-      setInternalOpen(!isOpen);
+export function ChatIA({ isOpen: controlledOpen, onToggle, onClose: controlledClose }) {
+  // Manejo explícito del estado isOpen requerido
+  const [isOpen, setIsOpen] = useState(false);
+
+  // Sincronización bidireccional si se proveen props controladas
+  useEffect(() => {
+    if (controlledOpen !== undefined) {
+      setIsOpen(controlledOpen);
     }
+  }, [controlledOpen]);
+
+  const handleToggle = () => {
+    console.log("Abriendo GuaneñaBot...");
+    setIsOpen((prev) => {
+      const next = !prev;
+      if (onToggle) onToggle(next);
+      return next;
+    });
   };
 
   const handleClose = () => {
-    if (controlledClose) {
-      controlledClose();
-    } else {
-      setInternalOpen(false);
-    }
+    setIsOpen(false);
+    if (controlledClose) controlledClose();
+    if (onToggle) onToggle(false);
   };
 
   const [messages, setMessages] = useState([
@@ -152,36 +158,36 @@ export function ChatIA({ isOpen: controlledOpen, onClose: controlledClose }) {
 
   return (
     <>
-      {/* 1. Botón Disparador Flotante (Esquina inferior derecha) con animación sutil de entrada */}
-      {!isOpen && (
-        <button
-          id="open-chat-fab"
-          type="button"
-          onClick={handleToggle}
-          className="fixed bottom-6 right-6 z-[1050] flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-white font-bold text-xs sm:text-sm border border-white/20 shadow-xl shadow-orange-500/25 hover:shadow-orange-500/40 transition-all duration-200 hover:-translate-y-0.5 active:scale-95 cursor-pointer group animate-in fade-in zoom-in-90"
-          aria-label="Abrir chat con GuaneñaBot"
-          title="Abrir GuaneñaBot - Tu guía en el Carnaval de Pasto"
-        >
-          <div className="relative flex items-center justify-center w-6 h-6 text-base">
-            🎭
-            <span className="absolute -top-1 -right-1 flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
-            </span>
-          </div>
-          <span className="font-extrabold tracking-wide">GuaneñaBot</span>
-          <Sparkles className="w-3.5 h-3.5 text-white/90 shrink-0" />
-        </button>
-      )}
+      {/* 1. Botón Disparador Flotante con z-[9999] y pointer-events-auto */}
+      <button
+        id="open-chat-fab"
+        type="button"
+        onClick={handleToggle}
+        className="fixed bottom-6 right-6 z-[9999] pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-white font-bold text-xs sm:text-sm border border-white/20 shadow-xl shadow-orange-500/25 hover:shadow-orange-500/40 transition-all duration-200 hover:-translate-y-0.5 active:scale-95 cursor-pointer group select-none"
+        aria-label="Abrir o cerrar chat con GuaneñaBot"
+        title="GuaneñaBot - Asistente IA del Carnaval de Pasto"
+      >
+        <div className="relative flex items-center justify-center w-6 h-6 text-base">
+          🎭
+          <span className="absolute -top-1 -right-1 flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+          </span>
+        </div>
+        <span className="font-extrabold tracking-wide">
+          {isOpen ? 'Cerrar Chat' : 'GuaneñaBot'}
+        </span>
+        <Sparkles className="w-3.5 h-3.5 text-white/90 shrink-0" />
+      </button>
 
-      {/* 2. Ventana de Chat Flotante en la esquina inferior derecha (380px ancho, 500px alto, adaptable) */}
+      {/* 2. Ventana de Chat Flotante con z-[9999] ubicada sobre el botón */}
       {isOpen && (
         <div
           role="complementary"
           aria-label="Ventana de GuaneñaBot"
-          className="fixed bottom-6 right-4 sm:right-6 z-[1100] w-[calc(100vw-2rem)] sm:w-[380px] h-[500px] max-h-[85vh] rounded-3xl bg-slate-900/95 backdrop-blur-xl border border-slate-700/50 shadow-2xl shadow-black/60 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200"
+          className="fixed bottom-20 right-6 z-[9999] pointer-events-auto w-[calc(100vw-2rem)] sm:w-[380px] h-[500px] max-h-[80vh] rounded-3xl bg-slate-900/95 backdrop-blur-xl border border-slate-700/50 shadow-2xl shadow-black/60 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200"
         >
-          {/* Header */}
+          {/* Header con botón visible de cierre */}
           <header className="px-4 py-3.5 border-b border-white/10 bg-slate-950/60 flex items-center justify-between gap-2 select-none">
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="relative flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white shadow-sm shrink-0 text-base">
@@ -210,7 +216,7 @@ export function ChatIA({ isOpen: controlledOpen, onClose: controlledClose }) {
               </button>
               <button
                 type="button"
-                onClick={handleClose}
+                onClick={() => setIsOpen(false)}
                 className="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded-xl transition cursor-pointer"
                 title="Cerrar chat"
                 aria-label="Cerrar chat"
