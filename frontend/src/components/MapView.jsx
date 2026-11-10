@@ -822,6 +822,8 @@ export function MapView({
   onToggleSenda: propOnToggleSenda,
   focusSendaTrigger = 0,
   hideTopBar = false,
+  userLocation = null,
+  ...props
 }) {
   // 1. Estado de geolocalización GPS del usuario (declarado al inicio absoluto para evitar ReferenceError)
   const [userGps, setUserGps] = useState(null);
@@ -1423,7 +1425,7 @@ export function MapView({
 
         {/* Marcador GPS del Usuario: Punto Azul Pulsante con Halo de Radar */}
         {(() => {
-          const loc = userGps || (props && props.userLocation);
+          const loc = userLocation || userGps || (props && props.userLocation) || (props && props.userGps);
           if (!loc) return null;
           const pos = Array.isArray(loc)
             ? loc

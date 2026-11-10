@@ -456,6 +456,7 @@ export function MapComponent({
   onSelectDestination,
   selectedDestination,
   userLocation,
+  userGps,
   ...props
 }: any) {
   return (
@@ -493,7 +494,7 @@ export function MapComponent({
         <PastoPoiMarkersLayer />
         {/* User GPS location: distinct pulsing blue dot and radar halo */}
         {(() => {
-          const loc = userLocation || props.userGps;
+          const loc = userLocation || userGps || (props && props.userGps) || (props && props.userLocation);
           if (!loc) return null;
           const pos: [number, number] | null = Array.isArray(loc)
             ? (loc as [number, number])

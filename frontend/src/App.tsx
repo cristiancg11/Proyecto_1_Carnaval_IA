@@ -622,6 +622,7 @@ export function App() {
                 selectedDay={currentCarnivalDay}
                 onSelectDay={setCurrentCarnivalDay}
                 onUserLocationChange={setUserGps}
+                userLocation={userGps}
                 navRoute={navRoute}
                 setNavRoute={setNavRoute}
                 showSenda={showSenda}
