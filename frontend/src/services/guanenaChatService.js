@@ -11,12 +11,18 @@ import {
   findCarnavalDayAgenda,
 } from '../data/carnavalKnowledgeBase';
 
-const BASE_URL = (
-  (import.meta.env && (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL)) ||
-  'http://localhost:8000'
-).replace(/\/+$/, '');
+const RAW_BASE_URL = (
+  (typeof import.meta !== 'undefined' && import.meta.env && (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL)) ||
+  'https://carnavalia-backend.onrender.com'
+).trim().replace(/\/+$/, '');
 
-const GUANENA_ENDPOINT = `${BASE_URL.endsWith('/api/v1') ? BASE_URL : `${BASE_URL}/api/v1`}/chat/guanena`;
+const BASE_URL = RAW_BASE_URL.endsWith('/api/v1')
+  ? RAW_BASE_URL.replace(/\/api\/v1$/, '')
+  : RAW_BASE_URL.endsWith('/api')
+  ? RAW_BASE_URL.replace(/\/api$/, '')
+  : RAW_BASE_URL;
+
+const GUANENA_ENDPOINT = `${BASE_URL}/api/v1/chat/guanena`;
 
 /**
  * Envía un mensaje a GuaneñaBot junto con la georreferenciación del usuario.

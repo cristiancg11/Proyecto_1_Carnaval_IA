@@ -1,7 +1,16 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // URL de la API del Backend (FastAPI) y Supabase
-const BACKEND_API_URL = 'http://localhost:8000/api';
+const RAW_BACKEND_URL = (
+  (typeof import.meta !== 'undefined' && import.meta.env && (import.meta.env.VITE_API_URL as string)) ||
+  'https://carnavalia-backend.onrender.com'
+).trim().replace(/\/+$/, '');
+
+const BACKEND_API_URL = RAW_BACKEND_URL.endsWith('/api')
+  ? RAW_BACKEND_URL
+  : RAW_BACKEND_URL.endsWith('/api/v1')
+  ? RAW_BACKEND_URL.replace(/\/api\/v1$/, '/api')
+  : `${RAW_BACKEND_URL}/api`;
 const supabaseUrl = (import.meta.env?.VITE_SUPABASE_URL as string) || 'https://placeholder.supabase.co';
 const supabaseAnonKey = (import.meta.env?.VITE_SUPABASE_ANON_KEY as string) || 'placeholder-anon-key';
 
@@ -146,7 +155,7 @@ export const normalizeReport = (raw: any): IncidentReport => {
 };
 
 /**
- * Inserta un reporte de incidente enviando POST http://localhost:8000/api/reports
+ * Inserta un reporte de incidente enviando POST /api/reports
  * Body: { title, category, description, latitude, longitude }
  */
 export async function submitIncidentReport(payload: IncidentReportPayload): Promise<IncidentReport> {
@@ -167,7 +176,7 @@ export async function submitIncidentReport(payload: IncidentReportPayload): Prom
 
   let createdReport: IncidentReport | null = null;
 
-  // 1. Enviar POST http://localhost:8000/api/reports
+  // 1. Enviar POST al endpoint de reportes
   try {
     let response: Response;
     try {
@@ -196,7 +205,7 @@ export async function submitIncidentReport(payload: IncidentReportPayload): Prom
       console.warn('Backend respondió con estado no exitoso:', response.status);
     }
   } catch (apiErr) {
-    console.warn('No fue posible contactar a http://localhost:8000/api/reports, intentando respaldo:', apiErr);
+    console.warn(`No fue posible contactar a ${BACKEND_API_URL}/reports, intentando respaldo:`, apiErr);
   }
 
   // 2. Respaldo directo en Supabase si no se pudo crear en la API
@@ -241,12 +250,12 @@ export async function submitIncidentReport(payload: IncidentReportPayload): Prom
 }
 
 /**
- * Consulta los reportes activos haciendo GET http://localhost:8000/api/reports
+ * Consulta los reportes activos haciendo GET /api/reports
  */
 export async function fetchActiveReports(): Promise<IncidentReport[]> {
   let backendReports: IncidentReport[] = [];
 
-  // 1. GET http://localhost:8000/api/reports
+  // 1. GET al endpoint de reportes
   try {
     let response: Response;
     try {
@@ -262,7 +271,7 @@ export async function fetchActiveReports(): Promise<IncidentReport[]> {
       }
     }
   } catch (apiErr) {
-    console.warn('Aviso: backend no disponible en http://localhost:8000/api/reports, consultando respaldo:', apiErr);
+    console.warn(`Aviso: backend no disponible en ${BACKEND_API_URL}/reports, consultando respaldo:`, apiErr);
   }
 
   // 2. Respaldo directo de Supabase si la API no retornó datos

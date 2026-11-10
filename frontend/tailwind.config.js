@@ -16,7 +16,7 @@ export default {
         'stitch-amber': '#F59E0B',
         'stitch-cyan': '#06B6D4',
         'carnaval-dark': '#07090e',
-        'carnaval-card': 'rgba(15, 23, 42, 0.8)',
+        'carnavaf-card': 'rgba(15, 23, 42, 0.8)',
         'carnaval-crimson': '#E11D48',
         'carnaval-gold': '#F59E0B',
         'carnaval-cyan': '#06B6D4',

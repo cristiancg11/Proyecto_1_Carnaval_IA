@@ -53,14 +53,18 @@ export const OFFICIAL_SENDA_WAYPOINTS: [number, number][] = [
 const resolveBaseUrl = (): string => {
   try {
     const envUrl = (
-      (typeof import.meta !== 'undefined' && import.meta.env && (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL)) ||
-      'http://localhost:8000'
+      (typeof import.meta !== 'undefined' && import.meta.env && (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL)) ||
+      'https://carnavalia-backend.onrender.com'
     ).trim().replace(/\/+$/, '');
 
-    // Strip trailing /api/v1 to avoid duplication
-    return envUrl.endsWith('/api/v1') ? envUrl.replace(/\/api\/v1$/, '') : envUrl;
+    // Strip trailing /api/v1 or /api to avoid duplication when endpoints are concatenated
+    return envUrl.endsWith('/api/v1')
+      ? envUrl.replace(/\/api\/v1$/, '')
+      : envUrl.endsWith('/api')
+      ? envUrl.replace(/\/api$/, '')
+      : envUrl;
   } catch {
-    return 'http://localhost:8000';
+    return 'https://carnavalia-backend.onrender.com';
   }
 };
 

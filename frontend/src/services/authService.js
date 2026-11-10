@@ -1,6 +1,17 @@
-// Servicio de autenticación conectado directamente a la API de FastAPI del Backend (http://localhost:8000/api)
+// Servicio de autenticación conectado a la API de FastAPI del Backend
 
-const API_BASE_URL = 'http://localhost:8000/api';
+const RAW_API_URL = (
+  (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL) ||
+  'https://carnavalia-backend.onrender.com'
+).trim().replace(/\/+$/, '');
+
+// Normalizar URL base para que apunte a /api sin dobles barras ni duplicación
+const API_BASE_URL = RAW_API_URL.endsWith('/api')
+  ? RAW_API_URL
+  : RAW_API_URL.endsWith('/api/v1')
+  ? RAW_API_URL.replace(/\/api\/v1$/, '/api')
+  : `${RAW_API_URL}/api`;
+
 const TOKEN_KEY = 'carnavalia_token';
 const USER_KEY = 'carnavalia_user';
 const SESSION_KEY = 'carnavalia_session';
@@ -9,8 +20,9 @@ const SESSION_KEY = 'carnavalia_session';
  * Función auxiliar para realizar peticiones fetch intentando URL absoluta y proxy local
  */
 async function fetchAuth(endpoint, body) {
-  const directUrl = `${API_BASE_URL}${endpoint}`;
-  const proxyUrl = `/api${endpoint}`;
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const directUrl = `${API_BASE_URL}${cleanEndpoint}`;
+  const proxyUrl = `/api${cleanEndpoint}`;
 
   let response;
   try {
@@ -32,7 +44,7 @@ async function fetchAuth(endpoint, body) {
         body: JSON.stringify(body),
       });
     } catch (proxyErr) {
-      throw new Error('No fue posible conectar con el servidor backend en http://localhost:8000/api');
+      throw new Error(`No fue posible conectar con el servidor backend en ${API_BASE_URL}`);
     }
   }
 
@@ -51,7 +63,7 @@ async function fetchAuth(endpoint, body) {
 
 export const authService = {
   /**
-   * Registro de un nuevo usuario en POST http://localhost:8000/api/auth/register
+   * Registro de un nuevo usuario en POST /api/auth/register
    * Payload: { email, password, full_name }
    */
   register: async (fullNameOrName, email, password) => {
@@ -99,7 +111,7 @@ export const authService = {
   },
 
   /**
-   * Inicio de sesión en POST http://localhost:8000/api/auth/login
+   * Inicio de sesión en POST /api/auth/login
    * Payload: { email, password }
    */
   login: async (email, password) => {
