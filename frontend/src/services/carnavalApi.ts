@@ -180,7 +180,10 @@ export async function sendMessageToGuanena(
 
   // Graceful deterministic offline fallback matching the Carnaval knowledge base
   const lower = trimmedMessage.toLowerCase();
-  const isSendaQuery = lower.includes('senda') || lower.includes('recorrido') || lower.includes('ruta') || lower.includes('castañeda') || lower.includes('desfile');
+  const isCastanedaQuery = lower.includes('castañeda') || lower.includes('castaneda') || lower.includes('4 de enero') || lower.includes('cuatro de enero');
+  const isBlancoQuery = lower.includes('blancos') || lower.includes('carroza') || lower.includes('6 de enero') || lower.includes('seis de enero') || lower.includes('desfile magno');
+  const isNegroQuery = lower.includes('negros') || lower.includes('5 de enero') || lower.includes('cinco de enero') || lower.includes('cosmetico') || lower.includes('pintica');
+  const isSendaQuery = lower.includes('senda') || lower.includes('recorrido') || lower.includes('ruta') || lower.includes('desfile');
   const isHospitalQuery = lower.includes('hospital') || lower.includes('salud') || lower.includes('medico') || lower.includes('médico') || lower.includes('urgencia');
   const isPlazaCarnaval = lower.includes('plaza del carnaval') || lower.includes('plaza carnaval');
 
@@ -190,7 +193,34 @@ export async function sendMessageToGuanena(
   let schedule: CarnavalSchedule | null = null;
   let nearbyPlaces: NearbyPlace[] = [];
 
-  if (isSendaQuery) {
+  if (isCastanedaQuery) {
+    reply = '¡Qué viva Pasto, carajo, veci! 🤠 El **4 de enero** celebramos la emblemática **Llegada de la Familia Castañeda**, tradición que desde 1929 rinde homenaje a la hospitalidad pastusa y da la bienvenida a propios y forasteros con comparsas campesinas, trajes de época, carretas y cuadros costumbristas.\n\n✨ **¿Qué te recomiendo hacer ese día?**\n• **Llegar temprano:** El desfile parte a las 10:00 AM desde la Senda Champagnat / Estadio Libertad y avanza por la Carrera 27.\n• **Ubicación estratégica:** La Plaza del Carnaval y la Plaza de Nariño son los mejores puntos para disfrutar de la puesta en escena teatral.\n• **Cierres viales:** El centro queda totalmente peatonalizado, así que desplázate a pie.\n• **Sabor nariñense:** Aprovecha para probar las empanadas de añejo y los hervidos tradicionales.\n\n¡Le he dejado trazado el recorrido del desfile en su mapa para que no se pierda de nada!';
+    shouldDraw = true;
+    waypoints = OFFICIAL_SENDA_WAYPOINTS;
+    schedule = {
+      start_time: '10:00 AM',
+      estimated_arrival_time: '03:30 PM',
+      start_location: 'Estadio Departamental Libertad / Senda Sur',
+      finish_location: 'Avenida de los Estudiantes / Champagnat',
+      event_name: 'Desfile de la Familia Castañeda (4 de Enero)',
+      distance_km: '7.2 km',
+    };
+  } else if (isBlancoQuery) {
+    reply = '¡Qué viva Pasto, carajo! 🎭 El **6 de enero** es la cumbre de nuestra fiesta: el **Día de Blancos y Desfile Magno**.\n\n👑 Los maestros artesanos de Nariño deslumbran con sus monumentales Carrozas de hasta 15 metros de altura, comparsas, murgas y disfraces individuales.\n\n✨ **Recomendaciones:**\n• Usa gafas protectoras y ropa que puedas manchar con talco y carioca.\n• La salida es a las 9:00 AM desde el Estadio Libertad.\n• ¡Disfruta con respeto y alegría junto a nuestra gente!';
+    shouldDraw = true;
+    waypoints = OFFICIAL_SENDA_WAYPOINTS;
+    schedule = {
+      start_time: '09:00 AM',
+      estimated_arrival_time: '04:30 PM',
+      start_location: 'Estadio Departamental Libertad',
+      finish_location: 'Avenida de los Estudiantes / Torobajo',
+      event_name: 'Desfile Magno de Carrozas (6 de Enero)',
+      distance_km: '7.2 km',
+    };
+  } else if (isNegroQuery) {
+    reply = '¡Una pintica por la paz, veci! 🖤 El **5 de enero** celebramos el **Día de Negros**.\n\n✨ Un día sagrado de hermandad y juego fraterno donde todos nos pintamos el rostro con cosmético negro bajo el lema histórico de igualdad y libertad. Las plazas principales (Plaza de Nariño y Plaza del Carnaval) son el epicentro de orquestas y fiesta comunitaria.';
+    shouldDraw = false;
+  } else if (isSendaQuery) {
     reply = '¡Qué viva Pasto, carajo! 🎭 La Senda Oficial recorre 7.2 km desde el Estadio Libertad por la Carrera 27, cruza la Plaza del Carnaval, la Plaza de Nariño y culmina en la Avenida de los Estudiantes.';
     shouldDraw = true;
     waypoints = OFFICIAL_SENDA_WAYPOINTS;
