@@ -1,5 +1,6 @@
-import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useRef, useEffect, startTransition } from 'react';
 import axios from 'axios';
+import { scheduleNextFrame, scheduleMicrotask } from '../utils/performance';
 import {
   MapContainer,
   TileLayer,
@@ -756,21 +757,24 @@ function NavRouteController({ routePath }) {
     prevRouteKeyRef.current = routeKey;
 
     const adjust = () => {
-      try {
-        if (routePath.length >= 2) {
-          const destination = routePath[routePath.length - 1];
-          if (map?.flyTo && destination) {
-            map.flyTo(destination, 17, { animate: true, duration: 1.2 });
-          } else {
-            map.fitBounds(routePath, { padding: [50, 50] });
+      // Use requestAnimationFrame via scheduleNextFrame to synchronize with paint cycle & avoid layout thrashing
+      scheduleNextFrame(() => {
+        try {
+          if (routePath.length >= 2) {
+            const destination = routePath[routePath.length - 1];
+            if (map?.flyTo && destination) {
+              map.flyTo(destination, 17, { animate: true, duration: 1.2 });
+            } else {
+              map.fitBounds(routePath, { padding: [50, 50] });
+            }
           }
+          scheduleNextFrame(() => {
+            if (map?.invalidateSize) map.invalidateSize();
+          });
+        } catch (err) {
+          console.warn("Error en centrado de navegación:", err);
         }
-        if (map?.invalidateSize) {
-          setTimeout(() => map.invalidateSize(), 300);
-        }
-      } catch (err) {
-        console.warn("Error en centrado de navegación:", err);
-      }
+      });
     };
 
     if (map._loaded) {
@@ -884,7 +888,9 @@ export function MapView({
   useEffect(() => {
     if (navRoute && navRoute.targetCoords) {
       if (navRoute.isGeminiRoute && navRoute.waypoints && navRoute.waypoints.length >= 2) {
-        setRoutePath(navRoute.waypoints);
+        startTransition(() => {
+          setRoutePath(navRoute.waypoints);
+        });
         setIsRouting(false);
         return;
       }
@@ -896,13 +902,18 @@ export function MapView({
       fetchRealRoute(start, navRoute.targetCoords)
         .then((coords) => {
           if (isMounted) {
-            setRoutePath(coords);
+            // Defer non-urgent polyline rendering with startTransition to keep INP < 200ms
+            startTransition(() => {
+              setRoutePath(coords);
+            });
           }
         })
         .catch((err) => {
           console.warn('Error al calcular ruta real:', err);
           if (isMounted) {
-            setRoutePath([start, navRoute.targetCoords]);
+            startTransition(() => {
+              setRoutePath([start, navRoute.targetCoords]);
+            });
           }
         })
         .finally(() => {
@@ -915,7 +926,9 @@ export function MapView({
         isMounted = false;
       };
     } else {
-      setRoutePath(null);
+      startTransition(() => {
+        setRoutePath(null);
+      });
       setIsRouting(false);
     }
   }, [navRoute, userGps]);

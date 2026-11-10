@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import { PASTO_POIS, PointOfInterest, LatLngTuple, dispatchGuanenaAction } from '../../data/pastoPOIs';
 import { SENDA_OFICIAL_COORDS, HITOS_SENDA } from '../../data/sendaCoords';
 import { getStreetRoute } from '../../services/routingService';
+import { scheduleNextFrame, scheduleMicrotask } from '../../utils/performance';
 
 // Resuelve el error clásico de Leaflet con Vite donde las rutas de los iconos por defecto se rompen
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -357,18 +358,21 @@ export function GuanenaRoutingHandler({
         category: detail.category,
       };
 
-      setActiveDestination(dest);
-      if (onDestinationChanged) onDestinationChanged(dest);
+      scheduleMicrotask(() => {
+        setActiveDestination(dest);
+        if (onDestinationChanged) onDestinationChanged(dest);
+      });
 
       // a) Centra el mapa suavemente en las coordenadas del destino con map.flyTo([lat, lng], 17)
-      if (map?.flyTo) {
-        map.flyTo(dest.coords, 17, { animate: true, duration: 1.5 });
-      }
-
-      // d) Llama a map.invalidateSize() para mantener la estabilidad de los tiles
-      setTimeout(() => {
-        if (map?.invalidateSize) map.invalidateSize();
-      }, 350);
+      // Synchronized with requestAnimationFrame to eliminate layout thrashing
+      scheduleNextFrame(() => {
+        if (map?.flyTo) {
+          map.flyTo(dest.coords, 17, { animate: true, duration: 1.5 });
+        }
+        scheduleNextFrame(() => {
+          if (map?.invalidateSize) map.invalidateSize();
+        });
+      });
 
       // c) Calcula la ruta a pie con OSRM desde la ubicación del usuario o fallback
       const start: [number, number] = detail.startCoords || detail.originCoords || userLocation || [1.2138, -77.2818];
@@ -383,13 +387,13 @@ export function GuanenaRoutingHandler({
         console.warn('Fallback de enrutamiento OSRM peatonal activado:', err);
         setWalkingPath([start, dest.coords]);
       } finally {
-        setTimeout(() => {
+        scheduleNextFrame(() => {
           // b) Abre el popup de detalle del lugar seleccionado
           if (markerRef.current) {
             markerRef.current.openPopup();
           }
           if (map?.invalidateSize) map.invalidateSize();
-        }, 600);
+        });
       }
     };
 

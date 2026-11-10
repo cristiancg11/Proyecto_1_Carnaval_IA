@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useTransition, useDeferredValue } from 'react';
 import { X, Send, Sparkles, RotateCcw, Compass, MapPin, Navigation, Bot, User } from 'lucide-react';
 import {
   sendMessageToGuanena,
@@ -9,6 +9,8 @@ import {
 import { useRealtimeLocation } from '../hooks/useRealtimeLocation';
 import { findBestPOIForQuery } from '../data/pastoPOIs';
 import { getStreetRoute } from '../services/routingService';
+import { poiWorkerClient } from '../services/poiWorkerClient';
+import { scheduleNextFrame, scheduleMicrotask } from '../utils/performance';
 
 export interface GuanenaChatProps {
   onRouteReceived?: (
@@ -155,6 +157,8 @@ export const GuanenaChat: React.FC<GuanenaChatProps> = ({
   const [inputMessage, setInputMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>(DEFAULT_SUGGESTIONS);
+  const [isPending, startUiTransition] = useTransition();
+  const deferredInput = useDeferredValue(inputMessage);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -223,12 +227,19 @@ export const GuanenaChat: React.FC<GuanenaChatProps> = ({
     setInputMessage('');
     setLoading(true);
 
-    // 1. Detección reactiva de intención espacial (Baños, Restaurantes, CAIs, Puestos de Salud, Tarimas)
+    // 1. Offload reactive spatial intent detection to the dedicated Web Worker (Haversine & spatial index)
     const userOrigin: [number, number] = (location?.lat && location?.lng) 
       ? [location.lat, location.lng] 
       : [1.2138, -77.2818];
 
-    const matchedPoiResult = findBestPOIForQuery(query, userOrigin);
+    let matchedPoiResult = null;
+    try {
+      matchedPoiResult = await poiWorkerClient.findBestPOIAsync(query, userOrigin);
+    } catch (e) {
+      console.warn('[GuanenaChat] Worker query fallback to local index:', e);
+      matchedPoiResult = findBestPOIForQuery(query, userOrigin);
+    }
+
     if (matchedPoiResult) {
       try {
         const { poi, reply } = matchedPoiResult;
@@ -251,56 +262,60 @@ export const GuanenaChat: React.FC<GuanenaChatProps> = ({
           shouldDrawRoute: true,
         };
 
-        setMessages((prev) => [...prev, botMessage]);
+        // Use React 18+ startTransition and queueMicrotask to prevent Long Tasks (>50ms) and keep INP < 200ms
+        startUiTransition(() => {
+          setMessages((prev) => [...prev, botMessage]);
+          setLoading(false);
+        });
 
-        // Disparar enrutamiento dinámico en el mapa
-        if (onSelectDestination) {
-          onSelectDestination(poi.coords, poi.name);
-        }
-        dispatchRouteToMap(routeCoords, poi.name);
+        scheduleMicrotask(() => {
+          if (onSelectDestination) {
+            onSelectDestination(poi.coords, poi.name);
+          }
+          dispatchRouteToMap(routeCoords, poi.name);
 
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(
-            new CustomEvent('route-to-poi', {
-              detail: {
-                targetCoords: poi.coords,
-                targetName: poi.name,
-                sector: poi.sector,
-                category: poi.category,
-                path: routeCoords,
-                startCoords: userOrigin,
-              },
-            })
-          );
-          window.dispatchEvent(
-            new CustomEvent('TRIGGER_NAVIGATION', {
-              detail: {
-                targetCoords: poi.coords,
-                targetName: poi.name,
-                originCoords: userOrigin,
-                coords: routeCoords,
-              },
-            })
-          );
-          window.dispatchEvent(
-            new CustomEvent('highlight-poi', {
-              detail: {
-                coords: poi.coords,
-                name: poi.name,
-                category: poi.category,
-                sector: poi.sector,
-                zoom: 17,
-              },
-            })
-          );
-          window.dispatchEvent(
-            new CustomEvent('FOCUS_MAP_BOUNDS', {
-              detail: { coordinates: routeCoords },
-            })
-          );
-        }
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(
+              new CustomEvent('route-to-poi', {
+                detail: {
+                  targetCoords: poi.coords,
+                  targetName: poi.name,
+                  sector: poi.sector,
+                  category: poi.category,
+                  path: routeCoords,
+                  startCoords: userOrigin,
+                },
+              })
+            );
+            window.dispatchEvent(
+              new CustomEvent('TRIGGER_NAVIGATION', {
+                detail: {
+                  targetCoords: poi.coords,
+                  targetName: poi.name,
+                  originCoords: userOrigin,
+                  coords: routeCoords,
+                },
+              })
+            );
+            window.dispatchEvent(
+              new CustomEvent('highlight-poi', {
+                detail: {
+                  coords: poi.coords,
+                  name: poi.name,
+                  category: poi.category,
+                  sector: poi.sector,
+                  zoom: 17,
+                },
+              })
+            );
+            window.dispatchEvent(
+              new CustomEvent('FOCUS_MAP_BOUNDS', {
+                detail: { coordinates: routeCoords },
+              })
+            );
+          }
+        });
 
-        setLoading(false);
         return;
       } catch (err) {
         console.warn('[GuanenaChat] Error en manejo de intención espacial:', err);

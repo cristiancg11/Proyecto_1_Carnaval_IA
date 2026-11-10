@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { X, Send, Sparkles, RotateCcw, MessageSquare, MapPin, Navigation } from 'lucide-react';
 import { findCarnavalLandmark, CARNAVAL_LANDMARKS } from '../../data/carnavalKnowledge';
 import { searchPastoPOI, findBestPOIForQuery, PASTO_POIS, PointOfInterest, dispatchGuanenaAction } from '../../data/pastoPOIs';
+import { poiWorkerClient } from '../../services/poiWorkerClient';
 import { getStreetRoute } from '../../services/routingService';
 import { sendGuanenaMessage } from '../../services/guanenaChatService';
 import { parseBotIntent, dispatchParadeIntent } from '../../services/botIntentParser';
@@ -237,7 +238,12 @@ export function GuanenaBot({ onFocusSenda, onFocusLandmark, onSelectDestination 
     const [userLat, userLng] = await getTouristGpsCoords();
     const touristCoords: [number, number] = [userLat, userLng];
 
-    const matchedPOIResult = findBestPOIForQuery(userText, touristCoords);
+    let matchedPOIResult = null;
+    try {
+      matchedPOIResult = await poiWorkerClient.findBestPOIAsync(userText, touristCoords);
+    } catch {
+      matchedPOIResult = findBestPOIForQuery(userText, touristCoords);
+    }
     if (matchedPOIResult) {
       actionTriggered = true;
       const { poi, category, reply } = matchedPOIResult;

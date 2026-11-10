@@ -1,25 +1,19 @@
 /**
- * Catálogo georreferenciado de Puntos de Interés (POI) reales en San Juan de Pasto
- * para la experiencia guiada por IA en el Carnaval de Negros y Blancos.
+ * Georeferenced catalog of Points of Interest (POIs) in San Juan de Pasto.
+ * Refactored to Object-Oriented Architecture (OOP) using CarnivalPOI, SpatialIndex, and POIService.
  */
 
-export type LatLngTuple = [number, number];
+import { CarnivalPOI, IPOIData, LatLngTuple, POICategory, POIType } from '../models/CarnivalPOI';
+import { SpatialIndex, SpatialSpatialIndex, SpatialSearchResult } from '../models/SpatialIndex';
+import { POIService, IntentMatchResult } from '../services/POIService';
 
-export interface PointOfInterest {
-  id: string;
-  name: string;
-  category: 'restaurante' | 'bano' | 'cai' | 'salud' | 'tarima';
-  type?: 'banos' | 'restaurante' | 'salud' | 'seguridad' | 'tarima';
-  coords: LatLngTuple;
-  address: string;
-  sector: string;
-  description: string;
-  schedule?: string;
-  phone?: string;
-}
+export type { LatLngTuple, POICategory, POIType, SpatialSearchResult, IntentMatchResult };
+export { CarnivalPOI, SpatialIndex, SpatialSpatialIndex, POIService };
 
-export const PASTO_POIS: PointOfInterest[] = [
-  // 1. Restaurantes Tradicionales y Gastronomía Típica (Cuy, Fritada, Empanadas, Hervidos)
+export type PointOfInterest = IPOIData;
+
+export const RAW_PASTO_POIS: IPOIData[] = [
+  // 1. Traditional Restaurants and Gastronomy (Cuy, Fritada, Empanadas, Hervidos)
   {
     id: 'rest-1',
     name: 'Restaurante Rancho Grande',
@@ -80,14 +74,14 @@ export const PASTO_POIS: PointOfInterest[] = [
     name: 'Asadero y Cuyería Mister Cuy',
     category: 'restaurante',
     type: 'restaurante',
-    coords: [1.2085, -77.2890],
+    coords: [1.2085, -77.289],
     address: 'Sector Champagnat / Bomboná',
     sector: 'Champagnat / Bomboná',
     description: 'Cuy crocante al carbón con papas coloradas y ají de maní.',
     schedule: '10:00 AM - 11:00 PM',
   },
 
-  // 2. Baños Públicos y Baterías Sanitarias de Emergencia
+  // 2. Public Restrooms and Sanitation
   {
     id: 'bano-1',
     name: 'Batería Sanitaria Plaza del Carnaval',
@@ -144,7 +138,7 @@ export const PASTO_POIS: PointOfInterest[] = [
     schedule: '8:00 AM - 9:00 PM',
   },
 
-  // 3. Seguridad y CAIs Policía Nacional
+  // 3. Police and Security CAIs
   {
     id: 'cai-1',
     name: 'CAI Plaza del Carnaval',
@@ -180,7 +174,7 @@ export const PASTO_POIS: PointOfInterest[] = [
     name: 'Puesto de Mando y CAI Móvil Normal',
     category: 'cai',
     type: 'seguridad',
-    coords: [1.2188, -77.2690],
+    coords: [1.2188, -77.269],
     address: 'Av. Santander Cra 27',
     sector: 'Av. Santander',
     description: 'Control de seguridad en el inicio de la Senda del Carnaval.',
@@ -190,13 +184,13 @@ export const PASTO_POIS: PointOfInterest[] = [
     name: 'CAI Estadio Libertad',
     category: 'cai',
     type: 'seguridad',
-    coords: [1.2050, -77.2770],
+    coords: [1.205, -77.277],
     address: 'Glorieta Estadio Libertad',
     sector: 'Estadio Libertad',
     description: 'Control policial y seguridad vial en el sector sur.',
   },
 
-  // 4. Puestos de Salud y Emergencias (Cruz Roja / Defensa Civil / Hospitales)
+  // 4. Health, First Aid and Hospitals
   {
     id: 'salud-1',
     name: 'Puesto de Primeros Auxilios Cruz Roja',
@@ -212,7 +206,7 @@ export const PASTO_POIS: PointOfInterest[] = [
     name: 'Punto de Atención Médica Parque Nariño',
     category: 'salud',
     type: 'salud',
-    coords: [1.2170, -77.2812],
+    coords: [1.217, -77.2812],
     address: 'Plaza de Nariño (Plazoleta Este)',
     sector: 'Plaza Nariño',
     description: 'Ambulancia medicalizada, brigadistas de la Defensa Civil y paramédicos.',
@@ -222,7 +216,7 @@ export const PASTO_POIS: PointOfInterest[] = [
     name: 'Hospital Civil de Pasto',
     category: 'salud',
     type: 'salud',
-    coords: [1.2105, -77.2750],
+    coords: [1.2105, -77.275],
     address: 'Calle 11 # 21A',
     sector: 'Champagnat / Bomboná',
     description: 'Centro hospitalario de urgencias de mayor nivel cercano a La Senda.',
@@ -242,13 +236,13 @@ export const PASTO_POIS: PointOfInterest[] = [
     name: 'Puesto de Salud Estadio Libertad',
     category: 'salud',
     type: 'salud',
-    coords: [1.2058, -77.2760],
+    coords: [1.2058, -77.276],
     address: 'Acceso Occidental Estadio Libertad',
     sector: 'Estadio Libertad',
     description: 'Equipo de paramédicos para atención a turistas y espectadores.',
   },
 
-  // 5. Tarimas y Eventos Culturales (Música campesina, rock, orquestas)
+  // 5. Music Stages and Cultural Performance Venues
   {
     id: 'tarima-1',
     name: 'Tarima Principal Plaza del Carnaval',
@@ -306,191 +300,41 @@ export const PASTO_POIS: PointOfInterest[] = [
   },
 ];
 
+// Singleton instance of the POIService encapsulating spatial indexing and OOP models
+export const poiService: POIService = POIService.getInstance(RAW_PASTO_POIS);
+
+// Legacy raw array export for backward compatibility
+export const PASTO_POIS: PointOfInterest[] = poiService.toRawArray();
+
 /**
- * Calcula distancia aproximada en kilómetros entre dos coordenadas
+ * Calculates Haversine distance in kilometers between two coordinates.
  */
 export function calculateDistanceKm(c1: LatLngTuple, c2: LatLngTuple): number {
-  const [lat1, lon1] = c1;
-  const [lat2, lon2] = c2;
-  const R = 6371; // Radio terrestre en km
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
+  return CarnivalPOI.calculateHaversine(c1, c2);
 }
 
 /**
- * Encuentra POIs filtrados por categoría
+ * Returns POIs filtered by category.
  */
-export function getPOIsByCategory(category: 'restaurante' | 'bano' | 'cai' | 'salud' | 'tarima' | 'todos') {
-  if (category === 'todos') return PASTO_POIS;
-  return PASTO_POIS.filter((p) => p.category === category || (category === 'bano' && p.type === 'banos'));
-}
-
-export interface IntentMatchResult {
-  poi: PointOfInterest;
-  category: 'restaurante' | 'bano' | 'cai' | 'salud' | 'tarima';
-  type: 'banos' | 'restaurante' | 'salud' | 'seguridad' | 'tarima';
-  matchedIntent: boolean;
-  reply: string;
+export function getPOIsByCategory(category: 'restaurante' | 'bano' | 'cai' | 'salud' | 'tarima' | 'todos'): PointOfInterest[] {
+  return poiService.getByCategory(category).map((poi) => poi.toJSON());
 }
 
 /**
- * Evalúa la intención espacial del usuario y selecciona el POI más adecuado a lo largo de La Senda
+ * Evaluates user spatial intent and finds the best matching POI.
  */
 export function findBestPOIForQuery(query: string, userCoords?: LatLngTuple): IntentMatchResult | null {
-  const q = query.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-
-  let matchedCategory: 'restaurante' | 'bano' | 'cai' | 'salud' | 'tarima' | null = null;
-  let matchedType: 'banos' | 'restaurante' | 'salud' | 'seguridad' | 'tarima' = 'restaurante';
-
-  // 1. Detección de intención espacial
-  if (
-    q.includes('bano') ||
-    q.includes('sanitario') ||
-    q.includes('orinar') ||
-    q.includes('pipi') ||
-    q.includes('servicio higienico') ||
-    q.includes('necesidad') ||
-    q.includes('bateria sanitaria')
-  ) {
-    matchedCategory = 'bano';
-    matchedType = 'banos';
-  } else if (
-    q.includes('cuy') ||
-    q.includes('comer') ||
-    q.includes('restaurante') ||
-    q.includes('comida') ||
-    q.includes('fritada') ||
-    q.includes('empanada') ||
-    q.includes('almuerzo') ||
-    q.includes('hervido') ||
-    q.includes('quimbolito') ||
-    q.includes('gastronomia')
-  ) {
-    matchedCategory = 'restaurante';
-    matchedType = 'restaurante';
-  } else if (
-    q.includes('policia') ||
-    q.includes('cai') ||
-    q.includes('seguridad') ||
-    q.includes('robo') ||
-    q.includes('extraviado') ||
-    q.includes('vigilancia') ||
-    q.includes('ladron') ||
-    q.includes('perdido')
-  ) {
-    matchedCategory = 'cai';
-    matchedType = 'seguridad';
-  } else if (
-    q.includes('salud') ||
-    q.includes('medic') ||
-    q.includes('cruz roja') ||
-    q.includes('urgencia') ||
-    q.includes('hospital') ||
-    q.includes('ambulancia') ||
-    q.includes('primeros auxilios') ||
-    q.includes('herido') ||
-    q.includes('desmayo') ||
-    q.includes('emergencia')
-  ) {
-    matchedCategory = 'salud';
-    matchedType = 'salud';
-  } else if (
-    q.includes('tarima') ||
-    q.includes('concierto') ||
-    q.includes('musica') ||
-    q.includes('orquesta') ||
-    q.includes('agrupacion') ||
-    q.includes('artista') ||
-    q.includes('tablado') ||
-    q.includes('show') ||
-    q.includes('evento cultural')
-  ) {
-    matchedCategory = 'tarima';
-    matchedType = 'tarima';
-  }
-
-  if (!matchedCategory) return null;
-
-  // 2. Filtrar candidatos de la categoría
-  const candidates = PASTO_POIS.filter((p) => p.category === matchedCategory);
-  if (candidates.length === 0) return null;
-
-  // 3. Buscar si el usuario mencionó un sector específico en su consulta
-  let selectedPoi: PointOfInterest | null = null;
-  if (q.includes('narino') || q.includes('parque narino') || q.includes('centro')) {
-    selectedPoi = candidates.find((p) => p.sector === 'Plaza Nariño') || null;
-  } else if (q.includes('carnaval') || q.includes('plaza carnaval')) {
-    selectedPoi = candidates.find((p) => p.sector === 'Plaza del Carnaval') || null;
-  } else if (q.includes('santander') || q.includes('normal') || q.includes('salida') || q.includes('cra 27')) {
-    selectedPoi = candidates.find((p) => p.sector === 'Av. Santander') || null;
-  } else if (q.includes('estadio') || q.includes('libertad')) {
-    selectedPoi = candidates.find((p) => p.sector === 'Estadio Libertad') || null;
-  } else if (q.includes('champagnat') || q.includes('bombona') || q.includes('llegada')) {
-    selectedPoi = candidates.find((p) => p.sector === 'Champagnat / Bomboná') || null;
-  }
-
-  // 4. Si no especificó sector pero tenemos coordenadas del usuario, elegir el más cercano
-  if (!selectedPoi && userCoords && Array.isArray(userCoords) && userCoords.length === 2) {
-    let minDistance = Infinity;
-    candidates.forEach((cand) => {
-      const dist = calculateDistanceKm(userCoords, cand.coords);
-      if (dist < minDistance) {
-        minDistance = dist;
-        selectedPoi = cand;
-      }
-    });
-  }
-
-  // 5. Fallback al primer candidato de la categoría
-  if (!selectedPoi) {
-    selectedPoi = candidates[0];
-  }
-
-  // 6. Generar respuesta con tono tradicional pastuso/nariñense
-  let reply = '';
-  switch (matchedCategory) {
-    case 'bano':
-      reply = `¡A la voz de una, paisano! 🚻 Te acabo de trazar la ruta en el mapa hacia la **${selectedPoi.name}** en **${selectedPoi.sector}**. Te queda a unos minutos caminando. ¡Sigue la línea dorada!`;
-      break;
-    case 'restaurante':
-      reply = `¡Qué delicia, paisano! 🍽️ Te acabo de trazar la ruta en el mapa hacia **${selectedPoi.name}** en **${selectedPoi.sector}**. Allí encontrás un cuy asado bien crocante y comida típica. ¡Sigue la línea dorada!`;
-      break;
-    case 'cai':
-      reply = `¡Firme mi paisano! 👮 Te acabo de trazar la ruta en el mapa hacia el **${selectedPoi.name}** en **${selectedPoi.sector}**. Los agentes están atentos para brindarte seguridad. ¡Sigue la línea dorada!`;
-      break;
-    case 'salud':
-      reply = `¡Atención inmediata, paisano! 🚨 Te acabo de trazar la ruta de asistencia en el mapa hacia el **${selectedPoi.name}** en **${selectedPoi.sector}**. Te queda muy cerca caminando. ¡Sigue la línea dorada!`;
-      break;
-    case 'tarima':
-      reply = `¡A gozar la fiesta, carajo! 🎪 Te acabo de trazar la ruta en el mapa hacia la **${selectedPoi.name}** en **${selectedPoi.sector}**. ¡Sigue la línea dorada para disfrutar del tablado!`;
-      break;
-  }
-
-  return {
-    poi: selectedPoi,
-    category: matchedCategory,
-    type: matchedType,
-    matchedIntent: true,
-    reply,
-  };
+  return poiService.findBestForIntent(query, userCoords);
 }
 
 /**
- * Busca un POI por consulta de texto libre
+ * Searches a POI by text query with fallback.
  */
 export function searchPastoPOI(query: string): PointOfInterest | null {
-  const result = findBestPOIForQuery(query);
+  const result = poiService.findBestForIntent(query);
   if (result) return result.poi;
-  const q = query.toLowerCase();
-  return PASTO_POIS.find((p) => p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q)) || null;
+  const matches = poiService.search(query);
+  return matches.length > 0 ? matches[0].toJSON() : null;
 }
 
 export type GuanenaMapAction =
@@ -499,7 +343,7 @@ export type GuanenaMapAction =
   | { type: 'NAVIGATE_TO'; targetCoords: LatLngTuple; targetName: string; startCoords?: LatLngTuple };
 
 /**
- * Despacha acciones directas de GuaneñaBot al mapa interactivo
+ * Dispatches actions from GuaneñaBot to the interactive map.
  */
 export function dispatchGuanenaAction(action: GuanenaMapAction) {
   if (typeof window === 'undefined') return;
