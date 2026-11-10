@@ -3,6 +3,7 @@
  * Connects frontend components to the backend endpoint (/api/v1/carnaval/chat)
  * for AI conversational guidance and GIS route waypoint extraction.
  */
+import { findCarnavalScheduleByQuery, CARNAVAL_DAILY_SCHEDULE } from '../data/carnavalKnowledge';
 
 export interface ChatHistoryTurn {
   role: 'user' | 'model' | 'assistant' | 'system';
@@ -180,9 +181,8 @@ export async function sendMessageToGuanena(
 
   // Graceful deterministic offline fallback matching the Carnaval knowledge base
   const lower = trimmedMessage.toLowerCase();
-  const isCastanedaQuery = lower.includes('castañeda') || lower.includes('castaneda') || lower.includes('4 de enero') || lower.includes('cuatro de enero');
-  const isBlancoQuery = lower.includes('blancos') || lower.includes('carroza') || lower.includes('6 de enero') || lower.includes('seis de enero') || lower.includes('desfile magno');
-  const isNegroQuery = lower.includes('negros') || lower.includes('5 de enero') || lower.includes('cinco de enero') || lower.includes('cosmetico') || lower.includes('pintica');
+  const matchedScheduleEvent = findCarnavalScheduleByQuery(trimmedMessage);
+  const isFullCalendarQuery = lower.includes('programacion') || lower.includes('programación') || lower.includes('calendario') || lower.includes('cronograma') || lower.includes('fechas') || (lower.includes('itinerario') && lower.includes('carnaval'));
   const isSendaQuery = lower.includes('senda') || lower.includes('recorrido') || lower.includes('ruta') || lower.includes('desfile');
   const isHospitalQuery = lower.includes('hospital') || lower.includes('salud') || lower.includes('medico') || lower.includes('médico') || lower.includes('urgencia');
   const isPlazaCarnaval = lower.includes('plaza del carnaval') || lower.includes('plaza carnaval');
@@ -193,33 +193,40 @@ export async function sendMessageToGuanena(
   let schedule: CarnavalSchedule | null = null;
   let nearbyPlaces: NearbyPlace[] = [];
 
-  if (isCastanedaQuery) {
-    reply = '¡Qué viva Pasto, carajo, veci! 🤠 El **4 de enero** celebramos la emblemática **Llegada de la Familia Castañeda**, tradición que desde 1929 rinde homenaje a la hospitalidad pastusa y da la bienvenida a propios y forasteros con comparsas campesinas, trajes de época, carretas y cuadros costumbristas.\n\n✨ **¿Qué te recomiendo hacer ese día?**\n• **Llegar temprano:** El desfile parte a las 10:00 AM desde la Senda Champagnat / Estadio Libertad y avanza por la Carrera 27.\n• **Ubicación estratégica:** La Plaza del Carnaval y la Plaza de Nariño son los mejores puntos para disfrutar de la puesta en escena teatral.\n• **Cierres viales:** El centro queda totalmente peatonalizado, así que desplázate a pie.\n• **Sabor nariñense:** Aprovecha para probar las empanadas de añejo y los hervidos tradicionales.\n\n¡Le he dejado trazado el recorrido del desfile en su mapa para que no se pierda de nada!';
+  if (matchedScheduleEvent) {
+    reply = `¡Qué viva Pasto, carajo, veci! 🎉 El **${matchedScheduleEvent.dateLabel}** celebramos el **${matchedScheduleEvent.title}**.\n\n` +
+      `📖 **Tradición e Historia:**\n${matchedScheduleEvent.fullDescription}\n\n` +
+      `⏱️ **Horario y Recorrido Oficial:**\n• **Horario:** ${matchedScheduleEvent.startTime} a ${matchedScheduleEvent.estimatedArrival}\n` +
+      `• **Punto de Partida:** ${matchedScheduleEvent.startLocation}\n` +
+      `• **Llegada:** ${matchedScheduleEvent.finishLocation}\n\n` +
+      `✨ **Recomendaciones de GuaneñaBot:**\n` +
+      matchedScheduleEvent.recommendations.map((r) => `• ${r}`).join('\n') +
+      `\n\n¡Le he ubicado las coordenadas en el mapa para que disfrute de este día con alegría y respeto!`;
     shouldDraw = true;
     waypoints = OFFICIAL_SENDA_WAYPOINTS;
     schedule = {
-      start_time: '10:00 AM',
-      estimated_arrival_time: '03:30 PM',
-      start_location: 'Estadio Departamental Libertad / Senda Sur',
-      finish_location: 'Avenida de los Estudiantes / Champagnat',
-      event_name: 'Desfile de la Familia Castañeda (4 de Enero)',
+      start_time: matchedScheduleEvent.startTime,
+      estimated_arrival_time: matchedScheduleEvent.estimatedArrival,
+      start_location: matchedScheduleEvent.startLocation,
+      finish_location: matchedScheduleEvent.finishLocation,
+      event_name: matchedScheduleEvent.title,
       distance_km: '7.2 km',
     };
-  } else if (isBlancoQuery) {
-    reply = '¡Qué viva Pasto, carajo! 🎭 El **6 de enero** es la cumbre de nuestra fiesta: el **Día de Blancos y Desfile Magno**.\n\n👑 Los maestros artesanos de Nariño deslumbran con sus monumentales Carrozas de hasta 15 metros de altura, comparsas, murgas y disfraces individuales.\n\n✨ **Recomendaciones:**\n• Usa gafas protectoras y ropa que puedas manchar con talco y carioca.\n• La salida es a las 9:00 AM desde el Estadio Libertad.\n• ¡Disfruta con respeto y alegría junto a nuestra gente!';
+  } else if (isFullCalendarQuery) {
+    reply = '¡Qué viva Pasto, carajo, paisano! 🎭 Aquí te tengo la programación oficial y cronológica del Carnaval de Negros y Blancos día por día:\n\n' +
+      '• **28 de Diciembre:** *Día de los Inocentes y Arcoíris en el Asfalto* — Pintura con tiza sobre el asfalto en El Colorado, conciencia ecológica y homenaje al agua y la paz.\n' +
+      '• **29 de Diciembre:** *Concierto de Música Latinoamericana* — Tributo andino y sacro con ensambles tradicionales en Plaza de Nariño y Plaza del Carnaval.\n' +
+      '• **30 de Diciembre:** *Serenata a Pasto* — Tríos regionales, boleros y música de cuerdas en tributo de amor a San Juan de Pasto.\n' +
+      '• **31 de Diciembre:** *Desfile de Años Viejos y Viudas* — Desfile satírico de monigotes sobre política y actualidad, seguido de la quema simbólica y bienvenida al Año Nuevo.\n' +
+      '• **02 de Enero:** *Carnavalito y Ofrenda a la Virgen de las Mercedes* — Semillero infantil de artesanos con mini-carrozas y trajes típicos, junto a la romería a la Patrona de Pasto.\n' +
+      '• **03 de Enero:** *Día del Canto a la Tierra y Colectivos Coreográficos* — Más de 2.000 danzantes y músicos andinos con zampoñas y charangos honrando a la Pachamama a lo largo de La Senda.\n' +
+      '• **04 de Enero:** *Llegada de la Familia Castañeda* — Gran estampa teatral callejera de hospitalidad campesina que rememora la comitiva forastera de 1929.\n' +
+      '• **05 de Enero:** *Día de los Negros (Juego de Caricias)* — Conmemoración histórica de la libertad afrocolombiana mediante el juego fraterno de cosmético negro bajo el grito: "¡Que vivan los Negros!".\n' +
+      '• **06 de Enero:** *Día de los Blancos (Desfile Magno)* — La cúspide estética del Carnaval: majestuosas Carrozas Monumentales, comparsas, murgas, talco perfumado y carioca.\n' +
+      '• **07 de Enero:** *Día del Cuy y Festival Campesino / Remate* — Cierre gastronómico y folclórico en los corregimientos de Catambuco y Obonuco con cuy asado y música campesina.\n\n' +
+      '¿Sobre cuál de estos días mágicos querés que te oriente o trace ruta en el mapa, veci?';
     shouldDraw = true;
     waypoints = OFFICIAL_SENDA_WAYPOINTS;
-    schedule = {
-      start_time: '09:00 AM',
-      estimated_arrival_time: '04:30 PM',
-      start_location: 'Estadio Departamental Libertad',
-      finish_location: 'Avenida de los Estudiantes / Torobajo',
-      event_name: 'Desfile Magno de Carrozas (6 de Enero)',
-      distance_km: '7.2 km',
-    };
-  } else if (isNegroQuery) {
-    reply = '¡Una pintica por la paz, veci! 🖤 El **5 de enero** celebramos el **Día de Negros**.\n\n✨ Un día sagrado de hermandad y juego fraterno donde todos nos pintamos el rostro con cosmético negro bajo el lema histórico de igualdad y libertad. Las plazas principales (Plaza de Nariño y Plaza del Carnaval) son el epicentro de orquestas y fiesta comunitaria.';
-    shouldDraw = false;
   } else if (isSendaQuery) {
     reply = '¡Qué viva Pasto, carajo! 🎭 La Senda Oficial recorre 7.2 km desde el Estadio Libertad por la Carrera 27, cruza la Plaza del Carnaval, la Plaza de Nariño y culmina en la Avenida de los Estudiantes.';
     shouldDraw = true;

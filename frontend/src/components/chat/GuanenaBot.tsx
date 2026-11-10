@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Send, Sparkles, RotateCcw, MessageSquare, MapPin, Navigation } from 'lucide-react';
-import { findCarnavalLandmark, CARNAVAL_LANDMARKS } from '../../data/carnavalKnowledge';
+import { findCarnavalLandmark, CARNAVAL_LANDMARKS, findCarnavalScheduleByQuery } from '../../data/carnavalKnowledge';
 import { searchPastoPOI, findBestPOIForQuery, PASTO_POIS, PointOfInterest, dispatchGuanenaAction } from '../../data/pastoPOIs';
 import { poiWorkerClient } from '../../services/poiWorkerClient';
 import { getStreetRoute } from '../../services/routingService';
@@ -219,22 +219,48 @@ export function GuanenaBot({ onFocusSenda, onFocusLandmark, onSelectDestination 
 
     const q = userText.toLowerCase();
 
-    // 1. Detección de intenciones: desfiles / Senda
+    // 1. Detección de intenciones: fechas oficiales del Carnaval (28 Dic - 7 Ene) y Senda
     let actionTriggered = false;
     let botReply = '';
 
-    const isParadeQuery = /senda|desfile|blancos|casta[ñn]eda|4 de enero|6 de enero|camino|ruta/i.test(userText);
-    if (isParadeQuery) {
+    const matchedSchedule = findCarnavalScheduleByQuery(userText);
+    const isFullCalendarQuery = q.includes('programacion') || q.includes('programación') || q.includes('calendario') || q.includes('cronograma') || q.includes('fechas');
+
+    if (matchedSchedule) {
       actionTriggered = true;
       if (typeof window !== 'undefined' && typeof (window as any).dibujarSendaCarnaval === 'function') {
         (window as any).dibujarSendaCarnaval('senda_oficial');
       }
+      await executeActionOnMap('senda', { dayId: matchedSchedule.dateKey });
+      botReply = `¡Qué viva Pasto, carajo, veci! 🎉 El **${matchedSchedule.dateLabel}** celebramos el **${matchedSchedule.title}**.\n\n` +
+        `📖 **Tradición e Historia:**\n${matchedSchedule.fullDescription}\n\n` +
+        `⏱️ **Horario y Recorrido Oficial:**\n• **Horario:** ${matchedSchedule.startTime} a ${matchedSchedule.estimatedArrival}\n` +
+        `• **Punto de Partida:** ${matchedSchedule.startLocation}\n` +
+        `• **Punto de Llegada:** ${matchedSchedule.finishLocation}\n\n` +
+        `✨ **Recomendaciones de GuaneñaBot:**\n` +
+        matchedSchedule.recommendations.map((r) => `• ${r}`).join('\n') +
+        `\n\n¡Te he ubicado la Senda oficial en el mapa para que no te pierdas de nada!`;
+    } else if (isFullCalendarQuery) {
+      actionTriggered = true;
       await executeActionOnMap('senda', { dayId: '06-ene' });
-      botReply = '¡Que viva Pasto, carajo! 🎭 He desplegado la Senda Oficial continua calle por calle (Champagnat -> Cra 27 -> Plaza Carnaval -> Cll 19 -> Plaza Nariño -> Cra 22 / Torobajo) en el mapa.';
+      botReply = '¡Qué viva Pasto, carajo, paisano! 🎭 Aquí te tengo la programación oficial y cronológica del Carnaval de Negros y Blancos:\n\n' +
+        '• **28 de Diciembre:** *Día de los Inocentes y Arcoíris en el Asfalto* (Pintura con tiza sobre el asfalto en El Colorado).\n' +
+        '• **29 de Diciembre:** *Concierto de Música Latinoamericana* (Tributo a la sonoridad andina en Plaza de Nariño y Plaza del Carnaval).\n' +
+        '• **30 de Diciembre:** *Serenata a Pasto* (Tríos románticos de cuerdas y boleros en la Plaza de Nariño).\n' +
+        '• **31 de Diciembre:** *Desfile de Años Viejos y Viudas* (Humor, sátira política con monigotes y quema ritual a medianoche).\n' +
+        '• **02 de Enero:** *Carnavalito y Ofrenda a la Virgen de las Mercedes* (Semillero infantil de artesanos y romería a la Patrona).\n' +
+        '• **03 de Enero:** *Día del Canto a la Tierra y Colectivos Coreográficos* (Más de 2.000 danzantes y zampoñeros honrando a la Pachamama).\n' +
+        '• **04 de Enero:** *Llegada de la Familia Castañeda* (Entrada teatral con trajes de 1929, carretas y hospitalidad forastera).\n' +
+        '• **05 de Enero:** *Día de los Negros (Juego de Caricias)* (Conmemoración de la libertad afro con cosmético negro).\n' +
+        '• **06 de Enero:** *Día de los Blancos (Desfile Magno)* (La cumbre: colosales Carrozas Monumentales, comparsas, talco y carioca).\n' +
+        '• **07 de Enero:** *Día del Cuy y Festival Campesino / Remate* (Gastronomía tradicional y música campesina en Catambuco y Obonuco).\n\n' +
+        '¿Sobre cuál de estas fechas te gustaría saber más, paisano?';
     } else if (q.includes('desfile') || q.includes('senda') || q.includes('recorrido') || q.includes('evento') || q.includes('carroza')) {
       actionTriggered = true;
       await executeActionOnMap('senda', { dayId: '06-ene' });
       botReply = '¡Que viva Pasto, carajo! 🎭 La Senda recorre 7 km desde la Normal por la Cra 27 hasta Champagnat.\n¡Te he desplegado el desfile y el mapa vial al instante!';
+    }
+
     const [userLat, userLng] = await getTouristGpsCoords();
     const touristCoords: [number, number] = [userLat, userLng];
 
