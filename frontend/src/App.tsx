@@ -22,7 +22,6 @@ import { getTranslation, Language } from './utils/i18n';
 export function App() {
   const { user, isAuthenticated, loading: authLoading, logout } = useAuth();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
 
   // Language toggle state ('ES' | 'EN')
   const [lang, setLang] = useState<Language>(() => {
@@ -584,17 +583,6 @@ export function App() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className={`hidden sm:flex items-center ${theme === 'dark' ? 'bg-[#15151d] border-[#272735]' : 'bg-slate-100 border-slate-300'} border focus-within:border-yellow-500/50 rounded-xl px-3 py-1.5 gap-2 transition`}>
-              <span className={`material-symbols-outlined ${theme === 'dark' ? 'text-neutral-400' : 'text-slate-500'} text-[18px]`}>search</span>
-              <input
-                className={`bg-transparent ${theme === 'dark' ? 'text-white placeholder:text-neutral-500' : 'text-slate-900 placeholder:text-slate-400'} text-xs outline-none w-40 md:w-52`}
-                placeholder={t.nav.searchPlaceholder}
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-
             {/* Language Toggle: Small pill button switching between ES and EN */}
             <button
               type="button"
