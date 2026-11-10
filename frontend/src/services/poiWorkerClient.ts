@@ -163,3 +163,4 @@ export class POIWorkerClient {
 
 export const poiWorkerClient = POIWorkerClient.getInstance();
 export default poiWorkerClient;
+

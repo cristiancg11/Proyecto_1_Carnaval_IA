@@ -1,5 +1,5 @@
 /**
- * CarnavalIA - Gemini 2.5 Flash Carnaval API Service Client
+ * CarnavalIA - Gemini 2.0 Flash Carnaval API Service Client
  * Connects frontend components to the backend endpoint (/api/v1/carnaval/chat)
  * for AI conversational guidance and GIS route waypoint extraction.
  */
@@ -64,7 +64,7 @@ const resolveBaseUrl = (): string => {
 };
 
 /**
- * Sends a message and chat history to GuaneñaBot powered by Gemini 2.5 Flash.
+ * Sends a message and chat history to GuaneñaBot powered by Gemini 2.0 Flash.
  * @param message Natural language query from the user
  * @param history Conversation history turns
  * @param userCoords Current real-time user GPS coordinates [lat, lng]

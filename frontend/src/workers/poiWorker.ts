@@ -339,3 +339,4 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
     } as WorkerResponse);
   }
 };
+

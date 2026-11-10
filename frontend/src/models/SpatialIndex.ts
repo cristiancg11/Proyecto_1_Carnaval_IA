@@ -183,3 +183,4 @@ export class SpatialIndex {
 // Academic alias as specified in the coursework requirements
 export { SpatialIndex as SpatialSpatialIndex };
 export default SpatialIndex;
+

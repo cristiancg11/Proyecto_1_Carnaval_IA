@@ -861,7 +861,7 @@ export function MapView({
   const [routePath, setRoutePath] = useState(null);
   const [isRouting, setIsRouting] = useState(false);
 
-  // Efecto que escucha los eventos de GuaneñaBot (Gemini 2.5 Flash)
+  // Efecto que escucha los eventos de GuaneñaBot (Gemini 2.0 Flash)
   useEffect(() => {
     const handleDrawGeminiRoute = (e) => {
       const { waypoints, title, schedule, nearby_places } = e.detail || {};

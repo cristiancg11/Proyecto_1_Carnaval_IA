@@ -266,3 +266,4 @@ export class POIService {
 }
 
 export default POIService;
+
