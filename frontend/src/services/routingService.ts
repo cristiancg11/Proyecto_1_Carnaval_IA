@@ -16,20 +16,29 @@ export interface StreetRouteResponse {
  * @returns Promesa con array de coordenadas [latitud, longitud] formateadas para Leaflet
  */
 export async function getStreetRoute(start: [number, number], end: [number, number]): Promise<[number, number][]> {
+  const userLng = start[1];
+  const userLat = start[0];
+  const destLng = end[1];
+  const destLat = end[0];
+
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 4000);
-    const url = `https://router.project-osrm.org/route/v1/foot/${start[1]},${start[0]};${end[1]},${end[0]}?overview=full&geometries=geojson`;
-    const res = await fetch(url, { signal: controller.signal });
+    const timeoutId = setTimeout(() => controller.abort(), 4500);
+    // Request pedestrian walking path from OSRM
+    const walkingUrl = `https://router.project-osrm.org/route/v1/walking/${userLng},${userLat};${destLng},${destLat}?overview=full&geometries=geojson`;
+    let res = await fetch(walkingUrl, { signal: controller.signal });
+    if (!res.ok) {
+      const footUrl = `https://router.project-osrm.org/route/v1/foot/${userLng},${userLat};${destLng},${destLat}?overview=full&geometries=geojson`;
+      res = await fetch(footUrl, { signal: controller.signal });
+    }
     clearTimeout(timeoutId);
 
-    if (!res.ok) {
-      return [start, end];
-    }
-
-    const data = await res.json();
-    if (data.routes && data.routes[0]?.geometry?.coordinates) {
-      return data.routes[0].geometry.coordinates.map((c: [number, number]) => [c[1], c[0]]);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.routes && data.routes[0]?.geometry?.coordinates) {
+        // Parse GeoJSON coordinates [lng, lat] into Leaflet format [lat, lng]
+        return data.routes[0].geometry.coordinates.map((c: [number, number]) => [c[1], c[0]]);
+      }
     }
     return [start, end];
   } catch (err) {

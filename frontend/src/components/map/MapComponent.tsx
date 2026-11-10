@@ -67,11 +67,24 @@ export function GuardedUserMarker({ userGps }: { userGps: [number, number] | nul
 }
 
 /**
- * Componente de navegación: Polilínea amarilla desactivada para preservar exclusivamente la Senda Oficial roja
+ * Componente de navegación: Polilínea dinámica para rutas a pie (Cyan Neón)
  */
 export function GuardedNavigationPolyline({ navigationPath }: { navigationPath: [number, number][] | null | undefined }) {
-  // Disabled yellow overlay route to keep only the official red Senda route
-  return null;
+  if (!Array.isArray(navigationPath) || navigationPath.length < 2) {
+    return null;
+  }
+  return (
+    <>
+      <Polyline
+        positions={navigationPath}
+        pathOptions={{ color: '#000000', weight: 9, opacity: 0.65, lineCap: 'round', lineJoin: 'round' }}
+      />
+      <Polyline
+        positions={navigationPath}
+        pathOptions={{ color: '#38bdf8', weight: 5, opacity: 0.9, dashArray: '8, 8', lineCap: 'round', lineJoin: 'round' }}
+      />
+    </>
+  );
 }
 
 const getPoiCategoryBadge = (category: string) => {
@@ -346,7 +359,7 @@ export function GuanenaRoutingHandler({
 }) {
   const map = useMap();
   const [activeDestination, setActiveDestination] = useState<any>(selectedDestination || null);
-  const [walkingPath, setWalkingPath] = useState<[number, number][] | null>(null);
+  const [routeCoordinates, setRouteCoordinates] = useState<[number, number][] | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
 
   useEffect(() => {
@@ -372,11 +385,10 @@ export function GuanenaRoutingHandler({
         if (onDestinationChanged) onDestinationChanged(dest);
       });
 
-      // a) Centra el mapa suavemente en las coordenadas del destino con map.flyTo([lat, lng], 17)
-      // Synchronized with requestAnimationFrame to eliminate layout thrashing
+      // a) Centra el mapa suavemente en las coordenadas del destino con map.flyTo([lat, lng], 16)
       scheduleNextFrame(() => {
         if (map?.flyTo) {
-          map.flyTo(dest.coords, 17, { animate: true, duration: 1.5 });
+          map.flyTo(dest.coords, 16, { animate: true });
         }
         scheduleNextFrame(() => {
           if (map?.invalidateSize) map.invalidateSize();
@@ -384,17 +396,23 @@ export function GuanenaRoutingHandler({
       });
 
       // c) Calcula la ruta a pie con OSRM desde la ubicación del usuario o fallback
-      const start: [number, number] = detail.startCoords || detail.originCoords || userLocation || [1.2138, -77.2818];
+      const rawUserLoc = userLocation;
+      const start: [number, number] = Array.isArray(rawUserLoc)
+        ? (rawUserLoc as [number, number])
+        : (rawUserLoc && typeof (rawUserLoc as any).lat === 'number' && typeof (rawUserLoc as any).lng === 'number'
+            ? [(rawUserLoc as any).lat, (rawUserLoc as any).lng]
+            : (detail.startCoords || detail.originCoords || [1.2138, -77.2818]));
+
       try {
         if (detail.path && Array.isArray(detail.path) && detail.path.length >= 2) {
-          setWalkingPath(detail.path);
+          setRouteCoordinates(detail.path);
         } else {
           const path = await getStreetRoute(start, dest.coords);
-          setWalkingPath(path);
+          setRouteCoordinates(path);
         }
       } catch (err) {
         console.warn('Fallback de enrutamiento OSRM peatonal activado:', err);
-        setWalkingPath([start, dest.coords]);
+        setRouteCoordinates([start, dest.coords]);
       } finally {
         scheduleNextFrame(() => {
           // b) Abre el popup de detalle del lugar seleccionado
@@ -416,7 +434,32 @@ export function GuanenaRoutingHandler({
 
   return (
     <>
-      {/* Yellow navigation polyline removed to keep only the official red Senda route */}
+      {/* Dynamic Walking Polyline (The Path): Cyan / Electric Sky Blue (#38bdf8) with neon dashed style */}
+      {routeCoordinates && routeCoordinates.length >= 2 && (
+        <>
+          <Polyline
+            positions={routeCoordinates}
+            pathOptions={{
+              color: '#000000',
+              weight: 9,
+              opacity: 0.65,
+              lineCap: 'round',
+              lineJoin: 'round',
+            }}
+          />
+          <Polyline
+            positions={routeCoordinates}
+            pathOptions={{
+              color: '#38bdf8',
+              weight: 5,
+              opacity: 0.9,
+              dashArray: '8, 8',
+              lineCap: 'round',
+              lineJoin: 'round',
+            }}
+          />
+        </>
+      )}
 
       {/* Marcador de Destino Activo con Popup de Apertura Automática */}
       {activeDestination && activeDestination.coords && (
@@ -426,19 +469,19 @@ export function GuanenaRoutingHandler({
         >
           <Popup autoPan={false}>
             <div className="p-2 min-w-[190px] text-xs font-sans">
-              <span className="text-[10px] font-black uppercase text-amber-400 block mb-0.5">
+              <span className="text-[10px] font-black uppercase text-cyan-400 block mb-0.5">
                 Ruta Guiada GuaneñaBot
               </span>
               <strong className="text-white block font-black text-sm">
                 {activeDestination.name}
               </strong>
               {activeDestination.sector && (
-                <p className="text-amber-200/90 text-[11px] mt-0.5 font-semibold">
+                <p className="text-cyan-200/90 text-[11px] mt-0.5 font-semibold">
                   📍 Sector: {activeDestination.sector}
                 </p>
               )}
               <p className="text-slate-300 text-[11px] mt-1">
-                🚶‍♂️ Sigue la línea dorada peatonal en el mapa.
+                🚶‍♂️ Sigue la línea azul celeste punteada en el mapa.
               </p>
             </div>
           </Popup>

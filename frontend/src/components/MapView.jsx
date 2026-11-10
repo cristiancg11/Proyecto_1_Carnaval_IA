@@ -764,7 +764,7 @@ function NavRouteController({ routePath }) {
           if (routePath.length >= 2) {
             const destination = routePath[routePath.length - 1];
             if (map?.flyTo && destination) {
-              map.flyTo(destination, 17, { animate: true, duration: 1.2 });
+              map.flyTo(destination, 16, { animate: true });
             } else {
               map.fitBounds(routePath, { padding: [50, 50] });
             }
@@ -1547,7 +1547,34 @@ export function MapView({
           </>
         )}
 
-        {/* Polilínea de navegación amarilla desactivada para preservar exclusivamente la Senda Oficial roja */}
+        {/* Dynamic Walking Polyline (The Path): Cyan / Electric Sky Blue (#38bdf8) with neon dashed styling */}
+        {Array.isArray(routePath) && routePath.length >= 2 && (
+          <>
+            <Polyline
+              key={`route-casing-${routePath.length}`}
+              positions={routePath}
+              pathOptions={{
+                color: '#000000',
+                weight: 9,
+                opacity: 0.65,
+                lineCap: 'round',
+                lineJoin: 'round',
+              }}
+            />
+            <Polyline
+              key={`route-active-${routePath.length}`}
+              positions={routePath}
+              pathOptions={{
+                color: '#38bdf8',
+                weight: 5,
+                opacity: 0.9,
+                dashArray: '8, 8',
+                lineCap: 'round',
+                lineJoin: 'round',
+              }}
+            />
+          </>
+        )}
 
         {navRoute && navRoute.targetCoords && (
           <Marker
