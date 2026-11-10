@@ -49,42 +49,18 @@ export function App() {
     });
   }, []);
 
-  // Theme toggle state ('dark' | 'light')
-  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    try {
-      const stored = (localStorage.getItem('carnavalia-theme') as 'dark' | 'light') ||
-                     (localStorage.getItem('carnavalia_theme') as 'dark' | 'light');
-      if (stored === 'light' || stored === 'dark') {
-        if (typeof document !== 'undefined') {
-          document.documentElement.classList.toggle('dark', stored === 'dark');
-        }
-        return stored;
-      }
-      return typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? 'dark' : 'dark';
-    } catch {
-      return 'dark';
-    }
-  });
-
-  const toggleTheme = useCallback(() => {
-    setTheme((prev) => {
-      const next = prev === 'dark' ? 'light' : 'dark';
-      const isDark = next === 'dark';
-      try {
-        localStorage.setItem('carnavalia-theme', next);
-        localStorage.setItem('carnavalia_theme', next);
-        document.documentElement.classList.toggle('dark', isDark);
-      } catch (e) {
-        console.warn('Error saving theme preference:', e);
-      }
-      return next;
-    });
-  }, []);
-
+  // Permanently locked in high-contrast Dark Mode
   useEffect(() => {
-    const isDark = theme === 'dark';
-    document.documentElement.classList.toggle('dark', isDark);
-  }, [theme]);
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.add('dark');
+      try {
+        localStorage.setItem('carnavalia-theme', 'dark');
+        localStorage.setItem('carnavalia_theme', 'dark');
+      } catch (e) {
+        console.warn('Error saving dark theme preference:', e);
+      }
+    }
+  }, []);
 
   const t = getTranslation(lang);
   
@@ -572,23 +548,11 @@ export function App() {
             <button
               type="button"
               onClick={toggleLanguage}
-              className="h-8 px-2.5 py-1 text-xs font-mono font-bold rounded-xl bg-white hover:bg-slate-100 border-slate-200 text-slate-700 dark:bg-[#15151d]/90 dark:hover:bg-[#1f1f2c] dark:border-[#272735] dark:text-neutral-300 border hover:border-yellow-500/40 hover:text-yellow-500 backdrop-blur-md transition-all flex items-center gap-1 active:scale-95 cursor-pointer shadow-sm"
+              className="h-8 px-2.5 py-1 text-xs font-mono font-bold rounded-xl bg-[#15151d]/90 hover:bg-[#1f1f2c] border border-[#272735] text-neutral-300 hover:border-yellow-500/40 hover:text-yellow-500 backdrop-blur-md transition-all flex items-center gap-1 active:scale-95 cursor-pointer shadow-sm"
               title={lang === 'ES' ? 'Switch to English' : 'Cambiar a Español'}
             >
               <span className="material-symbols-outlined text-[15px] text-yellow-500 dark:text-yellow-400">translate</span>
               <span>{lang}</span>
-            </button>
-
-            {/* Theme Toggle: Compact icon button (Sun/Moon Material Symbols) */}
-            <button
-              type="button"
-              onClick={toggleTheme}
-              className="h-8 w-8 rounded-xl bg-white hover:bg-slate-100 border-slate-200 text-slate-700 dark:bg-[#15151d]/90 dark:hover:bg-[#1f1f2c] dark:border-[#272735] dark:text-neutral-300 border hover:border-yellow-500/40 hover:text-yellow-500 backdrop-blur-md transition-all flex items-center justify-center active:scale-95 cursor-pointer shadow-sm"
-              title={theme === 'dark' ? (lang === 'ES' ? 'Cambiar a modo claro' : 'Switch to light mode') : (lang === 'ES' ? 'Cambiar a modo oscuro' : 'Switch to dark mode')}
-            >
-              <span className="material-symbols-outlined text-[17px] text-yellow-500 dark:text-yellow-400">
-                {theme === 'dark' ? 'light_mode' : 'dark_mode'}
-              </span>
             </button>
 
             <button

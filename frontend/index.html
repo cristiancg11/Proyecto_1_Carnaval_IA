@@ -13,12 +13,9 @@
     <script>
       (function() {
         try {
-          var t = localStorage.getItem('carnavalia-theme') || localStorage.getItem('carnavalia_theme') || 'dark';
-          if (t === 'light') {
-            document.documentElement.classList.remove('dark');
-          } else {
-            document.documentElement.classList.add('dark');
-          }
+          document.documentElement.classList.add('dark');
+          localStorage.setItem('carnavalia-theme', 'dark');
+          localStorage.setItem('carnavalia_theme', 'dark');
         } catch (e) {}
       })();
     </script>
