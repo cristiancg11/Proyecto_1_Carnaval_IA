@@ -21,6 +21,11 @@ L.Icon.Default.mergeOptions({
 });
 import { CARNIVAL_ROUTES } from '../data/carnivalRoutes';
 import { SENDA_OFICIAL_COORDS, HITOS_SENDA } from '../data/sendaCoords';
+import {
+  TRACK_SENDA_MAGNA,
+  TRACK_CANTO_A_LA_TIERRA,
+  TRACK_ARCOIRIS_ASFALTO,
+} from '../data/carnavalOfficialTracks';
 import { CarnavalDaySelector, DayCameraController } from './map/CarnavalDaySelector';
 import { createSvgLandmarkPin } from './map/MapComponent';
 import { fetchActiveReports } from '../services/reportService';
@@ -374,19 +379,109 @@ const getZoneColors = (riskLevel, congestionPercentage) => {
   };
 };
 
+// Trazado de la Senda según el día del Carnaval (ordenado desde el punto de salida hacia la llegada)
+function getSendaTrackForDay(dayId) {
+  switch (dayId) {
+    case '28-dic':
+      return TRACK_ARCOIRIS_ASFALTO;
+    case '03-ene':
+      return TRACK_CANTO_A_LA_TIERRA; // Recorrido inverso: Fuente de la Transparencia -> Normal Superior
+    case '07-ene': {
+      const route = CARNIVAL_ROUTES['07-ene']?.route;
+      return route && route.length >= 2 ? route : TRACK_SENDA_MAGNA;
+    }
+    default:
+      return TRACK_SENDA_MAGNA; // Normal Superior -> Fuente de la Transparencia
+  }
+}
+
+// Rumbo en grados (0 = norte, sentido horario) entre dos puntos [lat, lng]
+function computeBearingDeg(from, to) {
+  const dLat = to[0] - from[0];
+  const dLng = (to[1] - from[1]) * Math.cos((from[0] * Math.PI) / 180);
+  return (Math.atan2(dLng, dLat) * 180) / Math.PI;
+}
+
+// Flecha SVG rotada que indica el sentido del desfile
+function createDirectionArrowIcon(bearingDeg, color) {
+  return L.divIcon({
+    className: 'senda-direction-arrow',
+    html: `<div style="width:22px;height:22px;transform:rotate(${bearingDeg}deg);display:flex;align-items:center;justify-content:center;">
+      <svg width="22" height="22" viewBox="0 0 24 24" style="filter:drop-shadow(0 1px 2px rgba(0,0,0,0.8));">
+        <path d="M12 3 L20 19 L12 15 L4 19 Z" fill="#ffffff" stroke="${color}" stroke-width="2" stroke-linejoin="round"/>
+      </svg>
+    </div>`,
+    iconSize: [22, 22],
+    iconAnchor: [11, 11],
+  });
+}
+
+// Capa de la Senda: línea con borde + flechas de sentido a lo largo del recorrido
+function SendaRouteLayer({ track, color }) {
+  const arrows = useMemo(() => {
+    if (!Array.isArray(track) || track.length < 2) return [];
+    // Una flecha cada ARROW_SPACING_KM a lo largo del recorrido, orientada según el tramo donde cae
+    const ARROW_SPACING_KM = 0.15;
+    const result = [];
+    let nextAt = ARROW_SPACING_KM / 2;
+    let travelled = 0;
+    for (let i = 0; i < track.length - 1; i++) {
+      const a = track[i];
+      const b = track[i + 1];
+      const segKm = calculateDistanceKm(a[0], a[1], b[0], b[1]);
+      while (segKm > 0 && travelled + segKm >= nextAt) {
+        const f = (nextAt - travelled) / segKm;
+        result.push({
+          key: `senda-arrow-${result.length}`,
+          position: [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f],
+          bearing: computeBearingDeg(a, b),
+        });
+        nextAt += ARROW_SPACING_KM;
+      }
+      travelled += segKm;
+    }
+    return result;
+  }, [track]);
+
+  if (!Array.isArray(track) || track.length < 2) return null;
+
+  return (
+    <>
+      <Polyline
+        positions={track}
+        pathOptions={{ color: '#000000', weight: 11, opacity: 0.55, lineCap: 'round', lineJoin: 'round' }}
+        interactive={false}
+      />
+      <Polyline
+        positions={track}
+        pathOptions={{ color, weight: 7, opacity: 0.95, lineCap: 'round', lineJoin: 'round' }}
+      />
+      {arrows.map((arrow) => (
+        <Marker
+          key={arrow.key}
+          position={arrow.position}
+          icon={createDirectionArrowIcon(arrow.bearing, color)}
+          interactive={false}
+          keyboard={false}
+        />
+      ))}
+    </>
+  );
+}
+
 // Controlador para enfocar y animar la vista de la Senda del Carnaval
-function SendaController({ onSendaFocus, focusTrigger }) {
+function SendaController({ onSendaFocus, focusTrigger, track }) {
   const map = useMap();
 
   const handleFocus = useCallback(() => {
     if (!map) return;
     try {
-      const bounds = L.latLngBounds(SENDA_CARNAVAL_COORDS);
+      const bounds = L.latLngBounds(track && track.length >= 2 ? track : SENDA_CARNAVAL_COORDS);
       map.fitBounds(bounds, { padding: [40, 40], animate: true });
     } catch (err) {
       console.warn('Error al enfocar la Senda:', err);
     }
-  }, [map]);
+  }, [map, track]);
 
   useEffect(() => {
     if (focusTrigger > 0) {
@@ -729,12 +824,11 @@ export function MapView({
   const originPoint = userGps ? [userGps.lat || userGps[0], userGps.lng || userGps[1]] : [1.2138, -77.2818]; // Fallback al Parque Nariño si no hay GPS activo
 
   // Estado local para activar o desactivar la capa de la Senda del Carnaval (inicia estrictamente en false)
-  const [showSendaDetails, setShowSendaDetails] = useState(false);
   const [internalShowSenda, setInternalShowSenda] = useState(false);
   const [sendaFocusCounter, setSendaFocusCounter] = useState(0);
-  const showSenda = Boolean(showSendaDetails && (propShowSenda !== undefined ? propShowSenda : internalShowSenda));
+  // Si el padre controla la Senda (prop showSenda), se respeta directamente
+  const showSenda = Boolean(propShowSenda !== undefined ? propShowSenda : internalShowSenda);
   const toggleSenda = () => {
-    setShowSendaDetails((prev) => !prev);
     if (propOnToggleSenda) {
       propOnToggleSenda();
     } else {
@@ -891,6 +985,9 @@ export function MapView({
         return '#dc2626'; // Carmín (6 de Enero - Desfile Magno)
     }
   }, [selectedDay]);
+
+  // Trazado de la Senda para el día seleccionado
+  const sendaTrack = useMemo(() => getSendaTrackForDay(selectedDay), [selectedDay]);
 
   // Filtro activo de visualización rápida (inicia en null para no renderizar POIs por defecto)
   const [activeFilter, setActiveFilter] = useState(null);
@@ -1268,6 +1365,7 @@ export function MapView({
         {/* Controlador para centrar y animar la vista sobre la Senda del Carnaval */}
         <SendaController
           focusTrigger={focusSendaTrigger || sendaFocusCounter}
+          track={sendaTrack}
           onSendaFocus={() => {
             if (!showSenda) toggleSenda();
           }}
@@ -1345,11 +1443,14 @@ export function MapView({
         {/* Capa Oficial de la Senda protegida contra trazados estáticos obsoletos */}
         {showSenda && (
           <>
+            {/* Trazado de la Senda con flechas de sentido (salida -> llegada) */}
+            <SendaRouteLayer track={sendaTrack} color={dayRouteColor} />
+
             {/* Zonas de Tablados y Juego destacadas para el Día de Negros (5 de Enero) */}
             {selectedDay === '05-ene' && (
               <>
                 <Circle
-                  center={[1.21540, -77.28410]}
+                  center={[1.21056, -77.27655]}
                   radius={180}
                   pathOptions={{
                     color: '#dc2626',
@@ -1367,7 +1468,7 @@ export function MapView({
                   </Popup>
                 </Circle>
                 <Circle
-                  center={[1.21380, -77.28180]}
+                  center={[1.21461, -77.27829]}
                   radius={160}
                   pathOptions={{
                     color: '#dc2626',
@@ -1388,7 +1489,8 @@ export function MapView({
             )}
 
             {/* Hitos Oficiales Clave con Pines SVG Personalizados y Modernos */}
-            {HITOS_SENDA.map((hito) => (
+            {/* Salida y llegada se muestran con los marcadores del evento del día (coinciden con el trazado) */}
+            {HITOS_SENDA.filter((hito) => hito.tipo === 'intermedio').map((hito) => (
               <Marker
                 key={`hito-senda-${hito.id}`}
                 position={hito.coords}
@@ -1480,7 +1582,7 @@ export function MapView({
         )}
 
         {/* Capa de Marcadores de Salida, Llegada y Cierres Viales: protegida bajo showSendaDetails y showSenda */}
-        {showSendaDetails && showSenda && currentEvent && (
+        {showSenda && currentEvent && (
           <>
             {/* Marcador Salida: Pin verde con ícono "🏁 Inicio" */}
             {currentEvent.startPoint && (

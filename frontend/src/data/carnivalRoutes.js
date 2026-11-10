@@ -45,12 +45,12 @@ export const CARNIVAL_ROUTES = {
     hours: "08:00 - 16:00",
     description: "Humor, sátira política y quema de monigotes.",
     color: "#dc2626", // Ámbar
-    startPoint: { lat: 1.2030, lng: -77.2798, label: "Salida: Normal Superior" },
-    endPoint: { lat: 1.2265, lng: -77.2856, label: "Llegada: Fuente de la Transparencia" },
+    startPoint: { lat: 1.212641, lng: -77.285765, label: "Salida: Av. Carrera 27 - Normal Superior" },
+    endPoint: { lat: 1.198369, lng: -77.276805, label: "Llegada: Estadio Libertad" },
     closedPoints: [
-      { lat: 1.2030, lng: -77.2798, label: "Bloqueo Caracha / Cra 27" },
-      { lat: 1.2142, lng: -77.2780, label: "Cierre Calle 19 y acceso Plaza de Nariño" },
-      { lat: 1.2265, lng: -77.2856, label: "Desconcentración Fuente de la Transparencia" }
+      { lat: 1.212641, lng: -77.285765, label: "Bloqueo Av. Carrera 27 (Normal Superior)" },
+      { lat: 1.216975, lng: -77.278810, label: "Cierre Av. Carrera 27 con Calle 19" },
+      { lat: 1.198369, lng: -77.276805, label: "Desconcentración Estadio Libertad" }
     ],
     route: []
   },
@@ -60,11 +60,11 @@ export const CARNIVAL_ROUTES = {
     hours: "07:00 - 14:00",
     description: "Desfile infantil con mini-carrozas y comparsas tradicionales.",
     color: "#a8a29e", // Cyan
-    startPoint: { lat: 1.2030, lng: -77.2798, label: "Salida: Escuela Normal Superior" },
-    endPoint: { lat: 1.2265, lng: -77.2856, label: "Llegada: Fuente de la Transparencia" },
+    startPoint: { lat: 1.212641, lng: -77.285765, label: "Salida: Av. Carrera 27 - Normal Superior" },
+    endPoint: { lat: 1.198369, lng: -77.276805, label: "Llegada: Estadio Libertad" },
     closedPoints: [
-      { lat: 1.2030, lng: -77.2798, label: "Cierre Cra 27 sur-norte" },
-      { lat: 1.2142, lng: -77.2780, label: "Cierre Calle 19 (Plaza Nariño)" }
+      { lat: 1.212641, lng: -77.285765, label: "Cierre Av. Carrera 27 (Normal Superior)" },
+      { lat: 1.210869, lng: -77.276168, label: "Cierre Calle 19 (Plaza del Carnaval)" }
     ],
     route: []
   },
@@ -74,12 +74,12 @@ export const CARNIVAL_ROUTES = {
     hours: "09:00 - 16:00",
     description: "Recorrido completo por la Senda con trazo Ámbar. Miles de músicos y danzantes andinos.",
     color: "#dc2626", // Ámbar oficial
-    startPoint: { lat: 1.2265, lng: -77.2856, label: "Salida Oficial: Fuente de la Transparencia" },
-    endPoint: { lat: 1.2030, lng: -77.2798, label: "Llegada Oficial: Champagnat / Normal Superior" },
+    startPoint: { lat: 1.212641, lng: -77.285765, label: "Salida Oficial: Av. Carrera 27 - Normal Superior" },
+    endPoint: { lat: 1.198369, lng: -77.276805, label: "Llegada Oficial: Estadio Libertad" },
     closedPoints: [
-      { lat: 1.2265, lng: -77.2856, label: "Cierre Salida Fuente de la Transparencia" },
-      { lat: 1.2165, lng: -77.2806, label: "Cierre Eje Plaza de Nariño" },
-      { lat: 1.2138, lng: -77.2782, label: "Cierre Plaza del Carnaval" }
+      { lat: 1.212641, lng: -77.285765, label: "Cierre Salida Av. Carrera 27 (Normal Superior)" },
+      { lat: 1.216975, lng: -77.278810, label: "Cierre Av. Carrera 27 con Calle 19" },
+      { lat: 1.210869, lng: -77.276168, label: "Cierre Plaza del Carnaval (Calle 19)" }
     ],
     route: []
   },
@@ -89,11 +89,11 @@ export const CARNIVAL_ROUTES = {
     hours: "08:00 - 15:00",
     description: "Recorrido completo por la Senda con trazo Magenta. Estampas de época y bienvenida campesina de 1929.",
     color: "#dc2626", // Magenta oficial
-    startPoint: { lat: 1.2030, lng: -77.2798, label: "Salida Oficial: Normal Superior" },
-    endPoint: { lat: 1.2265, lng: -77.2856, label: "Llegada Oficial: Fuente de la Transparencia" },
+    startPoint: { lat: 1.212641, lng: -77.285765, label: "Salida Oficial: Av. Carrera 27 - Normal Superior" },
+    endPoint: { lat: 1.198369, lng: -77.276805, label: "Llegada Oficial: Estadio Libertad" },
     closedPoints: [
-      { lat: 1.2030, lng: -77.2798, label: "Cierre Cra 27 y Av. Santander" },
-      { lat: 1.2165, lng: -77.2806, label: "Cierre Calle 18 y Plaza de Nariño" }
+      { lat: 1.212641, lng: -77.285765, label: "Cierre Av. Carrera 27 (Normal Superior)" },
+      { lat: 1.204136, lng: -77.275366, label: "Cierre Calle 18 con Av. Champagnat" }
     ],
     route: []
   },
@@ -103,12 +103,12 @@ export const CARNIVAL_ROUTES = {
     hours: "11:00 - 23:00",
     description: "Tablados y zonas de juego en Plaza del Carnaval y Plaza de Nariño. Conmemoración de la igualdad étnica.",
     color: "#a8a29e", // Cyan festivo / Tablados
-    startPoint: { lat: 1.2165, lng: -77.2806, label: "Tablado Principal: Plaza de Nariño" },
-    endPoint: { lat: 1.2138, lng: -77.2782, label: "Tablado Oficial: Plaza del Carnaval" },
+    startPoint: { lat: 1.21461, lng: -77.27829, label: "Tablado Principal: Plaza de Nariño" },
+    endPoint: { lat: 1.21056, lng: -77.27655, label: "Tablado Oficial: Plaza del Carnaval" },
     closedPoints: [
-      { lat: 1.2138, lng: -77.2782, label: "Peatonalización Plaza del Carnaval" },
-      { lat: 1.2165, lng: -77.2806, label: "Peatonalización Plaza de Nariño" },
-      { lat: 1.2159, lng: -77.2797, label: "Zona Peatonal Calle 19" }
+      { lat: 1.21056, lng: -77.27655, label: "Peatonalización Plaza del Carnaval" },
+      { lat: 1.21461, lng: -77.27829, label: "Peatonalización Plaza de Nariño" },
+      { lat: 1.213547, lng: -77.277321, label: "Zona Peatonal Calle 19" }
     ],
     route: []
   },
@@ -118,13 +118,14 @@ export const CARNIVAL_ROUTES = {
     hours: "05:00 - 17:00",
     description: "Recorrido oficial completo con trazo Rojo Carmesí y todos los hitos visibles. Carrozas Monumentales.",
     color: "#dc2626", // Rojo Carmesí oficial
-    startPoint: { lat: 1.2030, lng: -77.2798, label: "Salida Oficial: I.E. Normal Superior" },
-    endPoint: { lat: 1.2265, lng: -77.2856, label: "Llegada Oficial: Fuente de la Transparencia" },
+    startPoint: { lat: 1.212641, lng: -77.285765, label: "Salida Oficial: Av. Carrera 27 - I.E. Normal Superior" },
+    endPoint: { lat: 1.198369, lng: -77.276805, label: "Llegada Oficial: Estadio Libertad" },
     closedPoints: [
-      { lat: 1.2030, lng: -77.2798, label: "Cierre Total Salida Normal Superior" },
-      { lat: 1.2165, lng: -77.2806, label: "Cierre Total Eje Plaza de Nariño" },
-      { lat: 1.2138, lng: -77.2782, label: "Cierre Total Plaza del Carnaval" },
-      { lat: 1.2265, lng: -77.2856, label: "Desmonte y Cierre Fuente de la Transparencia" }
+      { lat: 1.212641, lng: -77.285765, label: "Cierre Total Salida Av. Carrera 27 (Normal Superior)" },
+      { lat: 1.216975, lng: -77.278810, label: "Cierre Total Av. Carrera 27 con Calle 19" },
+      { lat: 1.210869, lng: -77.276168, label: "Cierre Total Plaza del Carnaval (Calle 19)" },
+      { lat: 1.204136, lng: -77.275366, label: "Cierre Total Calle 18 con Av. Champagnat" },
+      { lat: 1.198369, lng: -77.276805, label: "Desmonte y Cierre Estadio Libertad" }
     ],
     route: []
   },
