@@ -22,6 +22,61 @@ export function App() {
   const { user, isAuthenticated, loading: authLoading, logout } = useAuth();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Language toggle state ('ES' | 'EN')
+  const [lang, setLang] = useState<'ES' | 'EN'>(() => {
+    try {
+      return (localStorage.getItem('carnavalia_lang') as 'ES' | 'EN') || 'ES';
+    } catch {
+      return 'ES';
+    }
+  });
+
+  const toggleLanguage = useCallback(() => {
+    setLang((prev) => {
+      const next = prev === 'ES' ? 'EN' : 'ES';
+      try {
+        localStorage.setItem('carnavalia_lang', next);
+      } catch (e) {
+        console.warn('Error saving language preference:', e);
+      }
+      return next;
+    });
+  }, []);
+
+  // Theme toggle state ('dark' | 'light')
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    try {
+      return (localStorage.getItem('carnavalia_theme') as 'dark' | 'light') || 'dark';
+    } catch {
+      return 'dark';
+    }
+  });
+
+  const toggleTheme = useCallback(() => {
+    setTheme((prev) => {
+      const next = prev === 'dark' ? 'light' : 'dark';
+      try {
+        localStorage.setItem('carnavalia_theme', next);
+        if (next === 'light') {
+          document.documentElement.classList.add('carnavalia-light-mode');
+        } else {
+          document.documentElement.classList.remove('carnavalia-light-mode');
+        }
+      } catch (e) {
+        console.warn('Error saving theme preference:', e);
+      }
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    if (theme === 'light') {
+      document.documentElement.classList.add('carnavalia-light-mode');
+    } else {
+      document.documentElement.classList.remove('carnavalia-light-mode');
+    }
+  }, [theme]);
   
   // Auditar estrictamente el estado de autenticación desde localStorage con manejo seguro de excepciones
   const [isSessionActive, setIsSessionActive] = useState<boolean>(() => {
@@ -502,17 +557,40 @@ export function App() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="hidden sm:flex items-center bg-[#15151d] border border-[#272735] focus-within:border-yellow-500/50 rounded-xl px-3 py-1.5 gap-2 transition">
               <span className="material-symbols-outlined text-neutral-400 text-[18px]">search</span>
               <input
-                className="bg-transparent text-white text-xs placeholder:text-neutral-500 outline-none w-44 md:w-56"
-                placeholder="Buscar cuadrilla, carroza, tarima..."
+                className="bg-transparent text-white text-xs placeholder:text-neutral-500 outline-none w-40 md:w-52"
+                placeholder={lang === 'EN' ? 'Search troupe, float, stage...' : 'Buscar cuadrilla, carroza, tarima...'}
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
+
+            {/* Language Toggle: Small pill button switching between ES and EN */}
+            <button
+              type="button"
+              onClick={toggleLanguage}
+              className="h-8 px-2.5 py-1 text-xs font-mono font-bold rounded-xl bg-[#15151d]/90 hover:bg-[#1f1f2c] border border-[#272735] hover:border-yellow-500/40 text-neutral-300 hover:text-yellow-400 backdrop-blur-md transition-all flex items-center gap-1 active:scale-95 cursor-pointer shadow-sm"
+              title={lang === 'ES' ? 'Cambiar a Inglés (EN)' : 'Switch to Spanish (ES)'}
+            >
+              <span className="material-symbols-outlined text-[15px] text-yellow-400">translate</span>
+              <span>{lang}</span>
+            </button>
+
+            {/* Theme Toggle: Compact icon button (Sun/Moon Material Symbols) */}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="h-8 w-8 rounded-xl bg-[#15151d]/90 hover:bg-[#1f1f2c] border border-[#272735] hover:border-yellow-500/40 text-neutral-300 hover:text-yellow-400 backdrop-blur-md transition-all flex items-center justify-center active:scale-95 cursor-pointer shadow-sm"
+              title={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+            >
+              <span className="material-symbols-outlined text-[17px] text-yellow-400">
+                {theme === 'dark' ? 'light_mode' : 'dark_mode'}
+              </span>
+            </button>
 
             <button
               type="button"

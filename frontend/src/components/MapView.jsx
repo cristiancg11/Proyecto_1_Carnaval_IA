@@ -7,6 +7,7 @@ import {
   Marker,
   Popup,
   Circle,
+  CircleMarker,
   Polyline,
   useMap,
 } from 'react-leaflet';
@@ -1420,35 +1421,41 @@ export function MapView({
           maxZoom={19}
         />
 
-        {/* Marcador GPS del Usuario (Punto Azul con Halo Pulsante estilo Google Maps) */}
-        {/* Marcador de geolocalización blindado estrictamente contra valores nulos o NaN */}
+        {/* Marcador GPS del Usuario: Punto Azul Pulsante con Halo de Radar */}
         {(() => {
-          if (!userGps) return null;
-          const pos = Array.isArray(userGps)
-            ? userGps
-            : (typeof userGps.lat === 'number' && typeof userGps.lng === 'number' ? [userGps.lat, userGps.lng] : null);
+          const loc = userGps || (props && props.userLocation);
+          if (!loc) return null;
+          const pos = Array.isArray(loc)
+            ? loc
+            : (typeof loc.lat === 'number' && typeof loc.lng === 'number' ? [loc.lat, loc.lng] : null);
           if (!pos || isNaN(pos[0]) || isNaN(pos[1])) return null;
           return (
             <>
-              {/* Halo semitransparente de precisión GPS */}
-              <Circle
+              {/* Halo de radar exterior con menor opacidad simulando rastreo activo */}
+              <CircleMarker
                 center={pos}
-                radius={Math.min(userGps.accuracy || 35, 60)}
+                radius={20}
                 pathOptions={{
-                  fillColor: '#3b82f6',
-                  fillOpacity: 0.15,
-                  color: '#2563eb',
+                  color: '#3b82f6',
+                  fillColor: '#60a5fa',
+                  fillOpacity: 0.25,
                   weight: 1.5,
-                  opacity: 0.45,
+                  className: 'animate-pulse',
                 }}
               />
-              {/* Marcador protegido */}
-              <Marker
-                position={pos}
-                icon={createGoogleMapsGpsIcon()}
+              {/* Punto azul GPS central distintivo */}
+              <CircleMarker
+                center={pos}
+                radius={8}
+                pathOptions={{
+                  color: '#ffffff',
+                  fillColor: '#2563eb',
+                  fillOpacity: 1,
+                  weight: 3,
+                }}
               >
-                <Popup>Tu ubicación actual</Popup>
-              </Marker>
+                <Popup>Tu ubicación actual (GPS)</Popup>
+              </CircleMarker>
             </>
           );
         })()}
@@ -1538,34 +1545,7 @@ export function MapView({
           </>
         )}
 
-        {/* Renderizado de la ruta peatonal en Leaflet con OSRM blindado o GuaneñaBot (Dorado Neón) */}
-        {Array.isArray(routePath) && routePath.length >= 2 && (
-          <>
-            <Polyline
-              key={`route-casing-${routePath.length}`}
-              positions={routePath}
-              pathOptions={{
-                color: '#000000',
-                weight: 9,
-                opacity: 0.7,
-                lineCap: 'round',
-                lineJoin: 'round',
-              }}
-            />
-            <Polyline
-              key={`route-${routePath.length}-${navRoute?.isGeminiRoute ? 'gemini' : 'osrm'}`}
-              positions={routePath}
-              pathOptions={{
-                color: '#f59e0b',
-                weight: 5,
-                opacity: 0.95,
-                lineCap: 'round',
-                lineJoin: 'round',
-                dashArray: navRoute?.isGeminiRoute ? '8, 8' : undefined,
-              }}
-            />
-          </>
-        )}
+        {/* Polilínea de navegación amarilla desactivada para preservar exclusivamente la Senda Oficial roja */}
 
         {navRoute && navRoute.targetCoords && (
           <Marker

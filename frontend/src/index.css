@@ -429,3 +429,44 @@ body {
 .leaflet-popup-close-button:hover {
   color: #f1f5f9 !important;
 }
+
+/* ===== CarnavalIA Light Mode Support ===== */
+html.carnavalia-light-mode {
+  color-scheme: light;
+}
+
+html.carnavalia-light-mode body {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+html.carnavalia-light-mode header {
+  background-color: rgba(255, 255, 255, 0.94) !important;
+  border-color: rgba(226, 232, 240, 0.85) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+}
+
+html.carnavalia-light-mode header input {
+  color: #0f172a !important;
+}
+
+html.carnavalia-light-mode aside {
+  background-color: rgba(255, 255, 255, 0.96) !important;
+  border-color: rgba(226, 232, 240, 0.85) !important;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.06) !important;
+}
+
+html.carnavalia-light-mode aside nav button:not(.bg-gradient-to-r) {
+  color: #334155 !important;
+}
+
+html.carnavalia-light-mode aside nav button:not(.bg-gradient-to-r):hover {
+  background-color: #f1f5f9 !important;
+  color: #d97706 !important;
+}
+
+html.carnavalia-light-mode aside h1,
+html.carnavalia-light-mode aside p,
+html.carnavalia-light-mode aside span:not(.text-yellow-400):not(.text-yellow-300):not(.bg-yellow-400) {
+  color: #334155;
+}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, Tooltip, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, Tooltip, useMap, CircleMarker } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { PASTO_POIS, PointOfInterest, LatLngTuple, dispatchGuanenaAction } from '../../data/pastoPOIs';
@@ -31,38 +31,47 @@ export function useMapUserGps() {
 }
 
 /**
- * Componente blindado para renderizar el marcador de usuario solo con coordenadas válidas
+ * Componente blindado para renderizar el marcador de usuario GPS con punto azul y halo de radar
  */
 export function GuardedUserMarker({ userGps }: { userGps: [number, number] | null }) {
   if (!userGps || isNaN(userGps[0]) || isNaN(userGps[1])) {
     return null;
   }
   return (
-    <Marker position={userGps}>
-      <Popup>Tu ubicación actual</Popup>
-    </Marker>
+    <>
+      <CircleMarker
+        center={userGps}
+        radius={20}
+        pathOptions={{
+          color: '#3b82f6',
+          fillColor: '#60a5fa',
+          fillOpacity: 0.25,
+          weight: 1.5,
+          className: 'animate-pulse',
+        }}
+      />
+      <CircleMarker
+        center={userGps}
+        radius={8}
+        pathOptions={{
+          color: '#ffffff',
+          fillColor: '#2563eb',
+          fillOpacity: 1,
+          weight: 3,
+        }}
+      >
+        <Popup>Tu ubicación actual (GPS)</Popup>
+      </CircleMarker>
+    </>
   );
 }
 
 /**
- * Componente blindado para renderizar polilíneas de navegación solo con arrays de al menos 2 puntos (Dorado Neón)
+ * Componente de navegación: Polilínea amarilla desactivada para preservar exclusivamente la Senda Oficial roja
  */
 export function GuardedNavigationPolyline({ navigationPath }: { navigationPath: [number, number][] | null | undefined }) {
-  if (!Array.isArray(navigationPath) || navigationPath.length < 2) {
-    return null;
-  }
-  return (
-    <>
-      <Polyline
-        positions={navigationPath}
-        pathOptions={{ color: '#000000', weight: 8, opacity: 0.65, lineCap: 'round', lineJoin: 'round' }}
-      />
-      <Polyline
-        positions={navigationPath}
-        pathOptions={{ color: '#f59e0b', weight: 5, opacity: 0.95, lineCap: 'round', lineJoin: 'round' }}
-      />
-    </>
-  );
+  // Disabled yellow overlay route to keep only the official red Senda route
+  return null;
 }
 
 const getPoiCategoryBadge = (category: string) => {
@@ -407,31 +416,7 @@ export function GuanenaRoutingHandler({
 
   return (
     <>
-      {/* Polilínea Dorada / Neón OSRM por calles de Pasto */}
-      {walkingPath && walkingPath.length >= 2 && (
-        <>
-          <Polyline
-            positions={walkingPath}
-            pathOptions={{
-              color: '#000000',
-              weight: 8,
-              opacity: 0.65,
-              lineCap: 'round',
-              lineJoin: 'round',
-            }}
-          />
-          <Polyline
-            positions={walkingPath}
-            pathOptions={{
-              color: '#f59e0b',
-              weight: 5,
-              opacity: 0.95,
-              lineCap: 'round',
-              lineJoin: 'round',
-            }}
-          />
-        </>
-      )}
+      {/* Yellow navigation polyline removed to keep only the official red Senda route */}
 
       {/* Marcador de Destino Activo con Popup de Apertura Automática */}
       {activeDestination && activeDestination.coords && (
@@ -506,6 +491,45 @@ export function MapComponent({
         ))}
         {/* Capa interactiva de POIs (Baños, Restaurantes, CAIs, Salud, Tarimas) */}
         <PastoPoiMarkersLayer />
+        {/* User GPS location: distinct pulsing blue dot and radar halo */}
+        {(() => {
+          const loc = userLocation || props.userGps;
+          if (!loc) return null;
+          const pos: [number, number] | null = Array.isArray(loc)
+            ? (loc as [number, number])
+            : (typeof loc.lat === 'number' && typeof loc.lng === 'number' ? [loc.lat, loc.lng] : null);
+          if (!pos || isNaN(pos[0]) || isNaN(pos[1])) return null;
+
+          return (
+            <>
+              {/* Outer radar halo circle simulating active GPS tracking */}
+              <CircleMarker
+                center={pos}
+                radius={20}
+                pathOptions={{
+                  color: '#3b82f6',
+                  fillColor: '#60a5fa',
+                  fillOpacity: 0.25,
+                  weight: 1.5,
+                  className: 'animate-pulse',
+                }}
+              />
+              {/* Distinct blue GPS dot */}
+              <CircleMarker
+                center={pos}
+                radius={8}
+                pathOptions={{
+                  color: '#ffffff',
+                  fillColor: '#2563eb',
+                  fillOpacity: 1,
+                  weight: 3,
+                }}
+              >
+                <Popup>Tu ubicación actual (GPS)</Popup>
+              </CircleMarker>
+            </>
+          );
+        })()}
         {/* Manejador de enrutamiento dinámico en tiempo real OSRM de GuaneñaBot */}
         <GuanenaRoutingHandler
           selectedDestination={selectedDestination}
