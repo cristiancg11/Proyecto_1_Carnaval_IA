@@ -3,6 +3,7 @@ import Navbar from './components/layout/Navbar';
 import Header from './components/Header';
 import MapView from './components/MapView';
 import ReportModal from './components/ReportModal';
+import SosModal from './components/SosModal';
 import CitizenReportsModal from './components/CitizenReportsModal';
 import EventsCalendarModal from './components/EventsCalendarModal';
 import ChatBot from './components/ChatBot';
@@ -661,14 +662,15 @@ export function App() {
         </main>
       </div>
 
-      {/* Modal para Registro de Reportes */}
-      <ReportModal
+      {/* Modal para Registro de Reportes y Emergencias SOS */}
+      <SosModal
         isOpen={reportModalOpen}
         onClose={() => {
           setReportModalOpen(false);
           setSelectedLocation(null);
         }}
         initialCoordinates={selectedLocation || userGps}
+        userLocation={userGps}
         userGps={userGps}
         onReportCreated={handleReportCreated}
         onShowToast={showToast}

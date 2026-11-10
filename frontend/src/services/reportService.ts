@@ -295,8 +295,109 @@ export async function fetchActiveReports(): Promise<IncidentReport[]> {
   );
 }
 
+export interface EmergencyAlertPayload {
+  type: 'Medical' | 'Security' | 'Fire' | 'Lost Child' | string;
+  latitude: number;
+  longitude: number;
+  timestamp?: string;
+  status?: string;
+  description?: string;
+  location_name?: string;
+}
+
+export interface EmergencyAlertRecord extends EmergencyAlertPayload {
+  id: string | number;
+  created_at: string;
+}
+
+/**
+ * Dispatches a high-priority geolocated emergency alert directly to the PMU
+ * and registers it into the Supabase emergency_reports table.
+ */
+export async function dispatchEmergencyAlert(payload: EmergencyAlertPayload): Promise<EmergencyAlertRecord> {
+  const timestamp = payload.timestamp || new Date().toISOString();
+  const alertRecord: EmergencyAlertRecord = {
+    id: `sos-${Date.now()}`,
+    type: payload.type,
+    latitude: Number(payload.latitude),
+    longitude: Number(payload.longitude),
+    timestamp,
+    status: payload.status || 'pending',
+    description: payload.description || `Emergencia ${payload.type} reportada al PMU`,
+    location_name: payload.location_name || 'Senda del Carnaval',
+    created_at: timestamp,
+  };
+
+  // 1. Direct insertion to Supabase emergency_reports table
+  if (isSupabaseConfigured) {
+    try {
+      const { data, error } = await supabase
+        .from('emergency_reports')
+        .insert([{
+          type: alertRecord.type,
+          latitude: alertRecord.latitude,
+          longitude: alertRecord.longitude,
+          timestamp: alertRecord.timestamp,
+          status: alertRecord.status,
+          description: alertRecord.description,
+          created_at: alertRecord.created_at,
+        }])
+        .select()
+        .single();
+
+      if (!error && data) {
+        alertRecord.id = data.id || alertRecord.id;
+      } else if (error) {
+        console.warn('[reportService] Supabase emergency_reports table notice:', error.message);
+      }
+    } catch (sbErr) {
+      console.warn('[reportService] Supabase emergency_reports dispatch error:', sbErr);
+    }
+  }
+
+  // 2. Also register in standard incident reports as fallback to ensure map and PMU dashboards receive it
+  try {
+    const reportData = await submitIncidentReport({
+      title: `Alerta SOS PMU: ${payload.type}`,
+      type: payload.type === 'Medical' ? 'Emergencia' : payload.type,
+      category: payload.type,
+      description: payload.description || `Alerta SOS geolocalizada despachada al PMU (${payload.type})`,
+      latitude: payload.latitude,
+      longitude: payload.longitude,
+      lat: payload.latitude,
+      lng: payload.longitude,
+      ai_risk_level: 'Alto',
+      status: 'pending',
+    });
+    alertRecord.id = reportData.id || alertRecord.id;
+  } catch (err) {
+    console.warn('[reportService] Fallback to local incident dispatch:', err);
+  }
+
+  // 3. Cache locally so UI is immediately reactive
+  const localList = getStoredReports();
+  const normalized = normalizeReport({
+    id: alertRecord.id,
+    title: `Alerta SOS PMU: ${alertRecord.type}`,
+    category: alertRecord.type,
+    type: 'Emergencia',
+    description: alertRecord.description,
+    latitude: alertRecord.latitude,
+    longitude: alertRecord.longitude,
+    lat: alertRecord.latitude,
+    lng: alertRecord.longitude,
+    ai_risk_level: 'Alto',
+    status: 'pending',
+    created_at: alertRecord.created_at,
+  });
+  saveStoredReports([normalized, ...localList.filter((r) => r.id !== normalized.id)]);
+
+  return alertRecord;
+}
+
 export default {
   submitIncidentReport,
+  dispatchEmergencyAlert,
   fetchActiveReports,
   normalizeReport,
   supabase,

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, AlertTriangle, Send, Loader2, MapPin, Locate, CheckCircle2, Shield, HeartPulse, Users, UserCheck } from 'lucide-react';
 import { api } from '../../services/api';
-import { submitIncidentReport } from '../../services/reportService';
+import { submitIncidentReport, dispatchEmergencyAlert } from '../../services/reportService';
+import { EMERGENCY_DIRECTORY } from './SosModal';
 
 export interface ReportCategory {
   id: string;
@@ -191,11 +192,26 @@ export function ReportModal({
         }
       }
 
+      // Geolocated dispatch to Supabase table emergency_reports
+      try {
+        await dispatchEmergencyAlert({
+          type: catObj.value === 'Salud' ? 'Medical' : catObj.value === 'Seguridad' ? 'Security' : 'Medical',
+          latitude: Number(latitude),
+          longitude: Number(longitude),
+          timestamp: new Date().toISOString(),
+          status: 'pending',
+          description: payload.description,
+          location_name: locationTitle,
+        });
+      } catch (sosErr) {
+        console.warn('[ReportModal] Emergency dispatch to emergency_reports:', sosErr);
+      }
+
       if (onReportCreated) {
         onReportCreated(newReport);
       }
 
-      const successMessage = 'Reporte transmitido a logística del Carnaval y registrado en tiempo real';
+      const successMessage = 'Alerta enviada al PMU con tus coordenadas GPS';
       if (onShowToast) {
         onShowToast(successMessage, 'success');
       }
@@ -264,6 +280,35 @@ export function ReportModal({
               {error}
             </div>
           )}
+
+          {/* Quick-Call Emergency Directory (1-Tap Calls) */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-red-300 flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[16px] text-red-400">call</span>
+                Directorio Rápido (1 Toque)
+              </span>
+              <span className="text-[10px] text-slate-400 font-mono">Llamada Inmediata</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {EMERGENCY_DIRECTORY.map((item) => (
+                <a
+                  key={item.id}
+                  href={item.telHref}
+                  className={`p-2.5 rounded-xl border ${item.borderColor} bg-[#140b0e]/90 ${item.hoverBg} transition flex items-center justify-between gap-2 active:scale-95`}
+                  title={`Llamar a ${item.name}`}
+                >
+                  <div className="flex items-center gap-2 truncate">
+                    <span className="material-symbols-outlined text-[18px] text-slate-200">{item.icon}</span>
+                    <span className="text-[11px] font-bold text-white truncate">{item.name}</span>
+                  </div>
+                  <span className={`text-[10px] font-mono font-black px-1.5 py-0.5 rounded ${item.badgeColor} shrink-0`}>
+                    {item.phone}
+                  </span>
+                </a>
+              ))}
+            </div>
+          </div>
 
           {/* Cuadrícula de Categorías (Seguridad, Salud, Extravío, Aglomeración) */}
           <div className="flex flex-col gap-2">
@@ -393,7 +438,7 @@ export function ReportModal({
               ) : (
                 <>
                   <Send className="w-4 h-4" />
-                  <span>Transmitir Alerta Inmediata al PMU</span>
+                  <span>Despachar Alerta al PMU</span>
                 </>
               )}
             </button>
