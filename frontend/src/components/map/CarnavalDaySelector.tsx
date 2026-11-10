@@ -57,7 +57,7 @@ export function CarnavalDaySelector({
   return (
     <nav
       aria-label="Selector de días oficiales del Carnaval"
-      className="pointer-events-auto flex items-center justify-center p-1.5 sm:p-2 rounded-full bg-slate-900/85 backdrop-blur-xl border border-white/15 shadow-2xl shadow-black/60 overflow-x-auto no-scrollbar max-w-full mx-auto select-none transition-all"
+      className="pointer-events-auto flex items-center justify-center p-1.5 sm:p-2 rounded-full bg-white/95 border border-slate-200 text-slate-900 dark:bg-slate-900/85 dark:border-white/15 dark:text-white backdrop-blur-xl shadow-xl dark:shadow-2xl dark:shadow-black/60 overflow-x-auto no-scrollbar max-w-full mx-auto select-none transition-all"
     >
       <div className="flex items-center gap-1.5 sm:gap-2">
         {OFFICIAL_CARNIVAL_DATES.map((day) => {
@@ -71,7 +71,7 @@ export function CarnavalDaySelector({
               className={`rounded-full px-3.5 sm:px-4 py-1.5 sm:py-2 text-sm font-semibold transition-all duration-300 flex flex-col items-center justify-center cursor-pointer whitespace-nowrap min-w-[95px] sm:min-w-[120px] ${
                 isSelected
                   ? 'text-white scale-105 shadow-lg ring-2 ring-white/30 font-bold'
-                  : 'bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/5 hover:border-white/15 hover:scale-[1.02]'
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-200 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-300 dark:hover:text-white dark:border-white/5 dark:hover:border-white/15 hover:scale-[1.02]'
               }`}
               style={
                 isSelected

@@ -62,9 +62,9 @@ export function InstallPwaPrompt() {
       aria-label="Aviso de instalación de la aplicación"
       className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[1100] w-[92%] max-w-sm sm:max-w-md animate-in fade-in slide-in-from-bottom-5 duration-300"
     >
-      <div className="relative flex items-center justify-between gap-3 p-3.5 sm:p-4 rounded-3xl bg-slate-900/90 backdrop-blur-2xl border border-aqua-500/20 shadow-[0_20px_50px_rgba(0,0,0,0.8)] text-slate-100">
+      <div className="relative flex items-center justify-between gap-3 p-3.5 sm:p-4 rounded-3xl bg-white border border-slate-200 text-slate-900 dark:bg-slate-900/90 dark:border-aqua-500/20 dark:text-slate-100 backdrop-blur-2xl shadow-xl dark:shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
         {/* Adorno degradado superior neón */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-coral-400 via-coral-500 to-rose-600 rounded-t-3xl shadow-[0_0_12px_rgba(220, 38, 38,0.7)]"></div>
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-coral-400 via-coral-500 to-rose-600 rounded-t-3xl shadow-[0_0_12px_rgba(220,38,38,0.7)]"></div>
 
         {/* Icono e Información */}
         <div className="flex items-center gap-3 min-w-0">
@@ -77,11 +77,11 @@ export function InstallPwaPrompt() {
           </div>
 
           <div className="min-w-0">
-            <p className="text-xs sm:text-sm font-black text-white flex items-center gap-1.5 truncate">
+            <p className="text-xs sm:text-sm font-black text-slate-900 dark:text-white flex items-center gap-1.5 truncate">
               <span>CarnavalIA Pasto 2026</span>
-              <Sparkles className="w-3.5 h-3.5 text-aqua-400 shrink-0" />
+              <Sparkles className="w-3.5 h-3.5 text-aqua-600 dark:text-aqua-400 shrink-0" />
             </p>
-            <p className="text-[11px] text-slate-300 truncate">
+            <p className="text-[11px] text-slate-500 dark:text-slate-300 truncate">
               Disponible sin conexión • Acceso directo
             </p>
           </div>
@@ -100,7 +100,7 @@ export function InstallPwaPrompt() {
 
           <button
             onClick={() => setDismissed(true)}
-            className="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded-full transition cursor-pointer"
+            className="p-1.5 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 rounded-full transition cursor-pointer"
             title="Descartar aviso"
             aria-label="Cerrar aviso de instalación"
           >

@@ -52,8 +52,15 @@ export function App() {
   // Theme toggle state ('dark' | 'light')
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     try {
-      return (localStorage.getItem('carnavalia-theme') as 'dark' | 'light') ||
-             (localStorage.getItem('carnavalia_theme') as 'dark' | 'light') || 'dark';
+      const stored = (localStorage.getItem('carnavalia-theme') as 'dark' | 'light') ||
+                     (localStorage.getItem('carnavalia_theme') as 'dark' | 'light');
+      if (stored === 'light' || stored === 'dark') {
+        if (typeof document !== 'undefined') {
+          document.documentElement.classList.toggle('dark', stored === 'dark');
+        }
+        return stored;
+      }
+      return typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? 'dark' : 'dark';
     } catch {
       return 'dark';
     }
@@ -62,18 +69,11 @@ export function App() {
   const toggleTheme = useCallback(() => {
     setTheme((prev) => {
       const next = prev === 'dark' ? 'light' : 'dark';
+      const isDark = next === 'dark';
       try {
         localStorage.setItem('carnavalia-theme', next);
         localStorage.setItem('carnavalia_theme', next);
-        if (next === 'dark') {
-          document.documentElement.classList.add('dark');
-          document.documentElement.classList.remove('light');
-          document.documentElement.classList.remove('carnavalia-light-mode');
-        } else {
-          document.documentElement.classList.remove('dark');
-          document.documentElement.classList.add('light');
-          document.documentElement.classList.add('carnavalia-light-mode');
-        }
+        document.documentElement.classList.toggle('dark', isDark);
       } catch (e) {
         console.warn('Error saving theme preference:', e);
       }
@@ -82,15 +82,8 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-      document.documentElement.classList.remove('light');
-      document.documentElement.classList.remove('carnavalia-light-mode');
-    } else {
-      document.documentElement.classList.remove('dark');
-      document.documentElement.classList.add('light');
-      document.documentElement.classList.add('carnavalia-light-mode');
-    }
+    const isDark = theme === 'dark';
+    document.documentElement.classList.toggle('dark', isDark);
   }, [theme]);
 
   const t = getTranslation(lang);
@@ -337,11 +330,11 @@ export function App() {
   // 1. Pantalla de carga mientras se verifica sesión local
   if (authLoading) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen w-screen bg-[#08080a] text-slate-100">
+      <div className="flex flex-col items-center justify-center h-screen w-screen bg-slate-100 text-slate-900 dark:bg-[#08080a] dark:text-neutral-100">
         <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-yellow-400 text-stone-950 text-2xl shadow-lg shadow-yellow-500/30 animate-bounce">
           <span className="material-symbols-outlined text-[32px] font-bold">theater_comedy</span>
         </div>
-        <p className="text-xs font-bold tracking-widest uppercase text-yellow-400 mt-4 font-mono">
+        <p className="text-xs font-bold tracking-widest uppercase text-yellow-500 dark:text-yellow-400 mt-4 font-mono">
           Iniciando CarnavalIA GIS Pasto...
         </p>
       </div>
@@ -368,9 +361,9 @@ export function App() {
 
   // 3. Una vez autenticado con sesión activa, renderizar el Dashboard GIS Stitch Oficial
   return (
-    <div className={`min-h-screen ${theme === 'dark' ? 'bg-[#08080a] text-white' : 'bg-slate-50 text-slate-900'} font-sans selection:bg-yellow-400 selection:text-stone-950 overflow-hidden relative`}>
+    <div className="min-h-screen bg-slate-100 text-slate-900 dark:bg-[#08080a] dark:text-neutral-100 font-sans selection:bg-yellow-400 selection:text-stone-950 overflow-hidden relative">
       {/* 1. SIDEBAR IZQUIERDA (Especificación Stitch) */}
-      <aside className={`fixed left-0 top-0 h-full w-72 ${theme === 'dark' ? 'bg-[#0c0c10]/95 border-[#1e1e28]' : 'bg-white/95 border-slate-200 shadow-2xl'} border-r backdrop-blur-2xl z-40 flex flex-col justify-between p-4 transition-transform duration-300 ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+      <aside className={`fixed left-0 top-0 h-full w-72 bg-white/95 border-slate-200 text-slate-800 dark:bg-[#0c0c10]/95 dark:border-[#272735] dark:text-white border-r backdrop-blur-2xl z-40 flex flex-col justify-between p-4 transition-transform duration-300 shadow-2xl md:shadow-none ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
         <div className="flex flex-col gap-6">
           {/* Logo con icono Satellite */}
           <div className="flex items-center justify-between px-1">
@@ -379,15 +372,15 @@ export function App() {
                 <span className="material-symbols-outlined text-[#1a1400] text-[24px] font-bold">theater_comedy</span>
               </div>
               <div className="flex flex-col">
-                <span className={`text-[20px] tracking-tight font-bold leading-tight ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>CarnavalIA</span>
-                <span className="text-[11px] text-yellow-500 dark:text-yellow-400 tracking-widest uppercase font-semibold">{t.sidebar.brandSubtitle}</span>
+                <span className="text-[20px] tracking-tight font-bold leading-tight text-slate-900 dark:text-white">CarnavalIA</span>
+                <span className="text-[11px] text-yellow-600 dark:text-yellow-400 tracking-widest uppercase font-semibold">{t.sidebar.brandSubtitle}</span>
               </div>
             </div>
             {/* Cerrar en móvil */}
             <button
               type="button"
               onClick={() => setIsMobileSidebarOpen(false)}
-              className={`md:hidden p-1.5 ${theme === 'dark' ? 'text-neutral-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'}`}
+              className="md:hidden p-1.5 text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white cursor-pointer"
             >
               <span className="material-symbols-outlined text-[20px]">close</span>
             </button>
@@ -396,16 +389,16 @@ export function App() {
           {/* Badge Día en Vivo */}
           <div
             onClick={() => setCalendarOpen(true)}
-            className={`p-2.5 rounded-xl ${theme === 'dark' ? 'bg-[#15151c]/90 border-yellow-500/20' : 'bg-slate-100 border-yellow-600/30'} border backdrop-blur-md flex items-center justify-between cursor-pointer hover:border-yellow-500/40 transition group`}
+            className="p-2.5 rounded-xl bg-slate-100/90 border-slate-200 text-slate-800 dark:bg-[#15151c]/90 dark:border-yellow-500/20 dark:text-gray-200 border backdrop-blur-md flex items-center justify-between cursor-pointer hover:border-yellow-500/40 transition group"
             title={lang === 'ES' ? 'Cambiar fecha del Carnaval' : 'Change Carnival date'}
           >
             <div className="flex items-center gap-2 min-w-0">
               <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 animate-pulse shadow-[0_0_8px_#facc15] shrink-0" />
-              <span className={`text-[12px] font-semibold truncate ${theme === 'dark' ? 'text-gray-200' : 'text-slate-700'}`}>
+              <span className="text-[12px] font-semibold truncate text-slate-700 dark:text-gray-200">
                 {carnivalDayNames[currentCarnivalDay] || 'Día 6: Desfile Magno'}
               </span>
             </div>
-            <span className="text-[11px] text-yellow-500 dark:text-yellow-400 font-bold shrink-0 ml-1">{t.nav.live}</span>
+            <span className="text-[11px] text-yellow-600 dark:text-yellow-400 font-bold shrink-0 ml-1">{t.nav.live}</span>
           </div>
 
           {/* Menú de Navegación Vertical */}
@@ -421,9 +414,7 @@ export function App() {
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold transition-all text-left cursor-pointer ${
                 activeView === 'senda' && !reportsModalOpen && !calendarOpen
                   ? 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-stone-950 shadow-[0_0_20px_rgba(250,204,21,0.45)] border border-yellow-200'
-                  : theme === 'dark'
-                    ? 'text-neutral-300 hover:bg-[#1a1a24] hover:text-yellow-400 border border-transparent hover:border-yellow-500/20'
-                    : 'text-slate-700 hover:bg-slate-100 hover:text-yellow-600 border border-transparent'
+                  : 'text-slate-700 hover:bg-slate-100 hover:text-yellow-600 dark:text-neutral-300 dark:hover:bg-[#1a1a24] dark:hover:text-yellow-400 border border-transparent dark:hover:border-yellow-500/20'
               }`}
             >
               <span className="material-symbols-outlined text-[18px]">map</span>
@@ -442,15 +433,13 @@ export function App() {
               }}
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold transition-all text-left cursor-pointer ${
                 showSenda
-                  ? 'text-yellow-400 bg-[#1a1a24] border border-yellow-500/30'
-                  : theme === 'dark'
-                    ? 'text-neutral-300 hover:bg-[#1a1a24] hover:text-yellow-400 border border-transparent hover:border-yellow-500/20'
-                    : 'text-slate-700 hover:bg-slate-100 hover:text-yellow-600 border border-transparent'
+                  ? 'text-yellow-700 bg-yellow-100/70 border border-yellow-400/50 dark:text-yellow-400 dark:bg-[#1a1a24] dark:border-yellow-500/30'
+                  : 'text-slate-700 hover:bg-slate-100 hover:text-yellow-600 dark:text-neutral-300 dark:hover:bg-[#1a1a24] dark:hover:text-yellow-400 border border-transparent dark:hover:border-yellow-500/20'
               }`}
             >
               <span className="material-symbols-outlined text-[20px]">route</span>
               <span className="text-[14px]">{t.sidebar.carnivalSenda}</span>
-              <span className={`ml-auto w-2 h-2 rounded-full ${showSenda ? 'bg-yellow-400 shadow-[0_0_8px_#facc15]' : 'bg-neutral-600'}`} />
+              <span className={`ml-auto w-2 h-2 rounded-full ${showSenda ? 'bg-yellow-400 shadow-[0_0_8px_#facc15]' : 'bg-neutral-400 dark:bg-neutral-600'}`} />
             </button>
 
             <button
@@ -461,11 +450,11 @@ export function App() {
                 }
                 setIsMobileSidebarOpen(false);
               }}
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl ${theme === 'dark' ? 'text-neutral-300 hover:bg-[#1a1a24] hover:text-yellow-400 hover:border-yellow-500/20' : 'text-slate-700 hover:bg-slate-100 hover:text-yellow-600'} border border-transparent transition-all font-semibold text-left cursor-pointer group`}
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-700 hover:bg-slate-100 hover:text-yellow-600 dark:text-neutral-300 dark:hover:bg-[#1a1a24] dark:hover:text-yellow-400 border border-transparent dark:hover:border-yellow-500/20 transition-all font-semibold text-left cursor-pointer group"
             >
-              <span className="material-symbols-outlined text-[20px] group-hover:text-yellow-400">smart_toy</span>
+              <span className="material-symbols-outlined text-[20px] group-hover:text-yellow-500 dark:group-hover:text-yellow-400">smart_toy</span>
               <span className="text-[14px]">{t.sidebar.guanenaBot}</span>
-              <span className="ml-auto text-[10px] font-mono px-1.5 py-0.5 rounded bg-yellow-400/20 text-yellow-300 font-bold">2.5</span>
+              <span className="ml-auto text-[10px] font-mono px-1.5 py-0.5 rounded bg-yellow-400/20 text-yellow-700 dark:text-yellow-300 font-bold">2.5</span>
             </button>
 
             <button
@@ -478,9 +467,7 @@ export function App() {
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold transition-all text-left cursor-pointer ${
                 calendarOpen
                   ? 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-stone-950 font-bold border border-yellow-200'
-                  : theme === 'dark'
-                    ? 'text-neutral-300 hover:bg-[#1a1a24] hover:text-yellow-400 border border-transparent hover:border-yellow-500/20'
-                    : 'text-slate-700 hover:bg-slate-100 hover:text-yellow-600 border border-transparent'
+                  : 'text-slate-700 hover:bg-slate-100 hover:text-yellow-600 dark:text-neutral-300 dark:hover:bg-[#1a1a24] dark:hover:text-yellow-400 border border-transparent dark:hover:border-yellow-500/20'
               }`}
             >
               <span className="material-symbols-outlined text-[20px]">emergency</span>
@@ -497,9 +484,7 @@ export function App() {
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold transition-all text-left cursor-pointer ${
                 reportsModalOpen
                   ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white font-bold shadow-lg border border-red-400'
-                  : theme === 'dark'
-                    ? 'text-neutral-300 hover:bg-[#1a1a24] hover:text-yellow-400 border border-transparent hover:border-yellow-500/20'
-                    : 'text-slate-700 hover:bg-slate-100 hover:text-yellow-600 border border-transparent'
+                  : 'text-slate-700 hover:bg-slate-100 hover:text-yellow-600 dark:text-neutral-300 dark:hover:bg-[#1a1a24] dark:hover:text-yellow-400 border border-transparent dark:hover:border-yellow-500/20'
               }`}
             >
               <span className="material-symbols-outlined text-[20px]">warning</span>
@@ -515,28 +500,28 @@ export function App() {
 
         {/* Bloque Inferior: Datum Telemetría + Usuario y Salir */}
         <div className="flex flex-col gap-3">
-          <div className={`p-2.5 rounded-xl ${theme === 'dark' ? 'bg-[#121218] border-[#22222e]' : 'bg-slate-100 border-slate-200'} border flex flex-col gap-1 text-[11px] font-mono`}>
-            <span className={theme === 'dark' ? 'text-neutral-400' : 'text-slate-500'}>{t.telemetry.datumTelemetry}</span>
-            <div className="flex justify-between items-center text-yellow-500 dark:text-yellow-400 font-semibold">
+          <div className="p-2.5 rounded-xl bg-slate-100 border-slate-200 text-slate-700 dark:bg-[#121218] dark:border-[#22222e] dark:text-neutral-400 border flex flex-col gap-1 text-[11px] font-mono">
+            <span className="text-slate-500 dark:text-neutral-400">{t.telemetry.datumTelemetry}</span>
+            <div className="flex justify-between items-center text-yellow-600 dark:text-yellow-400 font-semibold">
               <span>{userGps?.lat ? `${userGps.lat.toFixed(4)}°N` : "01°12'54\"N"}</span>
               <span>{userGps?.lng ? `${userGps.lng.toFixed(4)}°W` : "77°16'44\"W"}</span>
             </div>
-            <div className={`flex justify-between items-center ${theme === 'dark' ? 'text-neutral-400' : 'text-slate-500'}`}>
+            <div className="flex justify-between items-center text-slate-500 dark:text-neutral-400">
               <span>ALT: 2,527m</span>
               <span className="text-amber-500 font-semibold">{userGps ? t.telemetry.liveGps : 'GNSS: RTK FIX'}</span>
             </div>
           </div>
 
-          <div className={`pt-2 border-t ${theme === 'dark' ? 'border-[#1e1e28]' : 'border-slate-200'} flex items-center justify-between`}>
+          <div className="pt-2 border-t border-slate-200 dark:border-[#1e1e28] flex items-center justify-between">
             <div className="flex items-center gap-2 min-w-0">
-              <div className="w-7 h-7 rounded-lg bg-yellow-400/20 border border-yellow-400/30 flex items-center justify-center text-xs font-bold text-yellow-500 dark:text-yellow-300 shrink-0">
+              <div className="w-7 h-7 rounded-lg bg-yellow-400/20 border border-yellow-400/30 flex items-center justify-center text-xs font-bold text-yellow-600 dark:text-yellow-300 shrink-0">
                 👤
               </div>
               <div className="flex flex-col min-w-0">
-                <span className={`text-xs font-semibold truncate max-w-[110px] ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+                <span className="text-xs font-semibold truncate max-w-[110px] text-slate-900 dark:text-white">
                   {displayName}
                 </span>
-                <span className="text-[10px] text-emerald-500 dark:text-emerald-400">Online</span>
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400">Online</span>
               </div>
             </div>
 
@@ -544,7 +529,7 @@ export function App() {
               id="sidebar-logout-btn"
               type="button"
               onClick={handleLogout}
-              className={`p-1.5 px-2 rounded-lg ${theme === 'dark' ? 'text-neutral-400 hover:text-red-400 hover:bg-red-500/10' : 'text-slate-600 hover:text-red-600 hover:bg-red-50'} border border-transparent transition cursor-pointer text-xs flex items-center gap-1 shrink-0`}
+              className="p-1.5 px-2 rounded-lg text-slate-600 hover:text-red-600 hover:bg-red-50 dark:text-neutral-400 dark:hover:text-red-400 dark:hover:bg-red-500/10 border border-transparent transition cursor-pointer text-xs flex items-center gap-1 shrink-0"
               title={t.sidebar.logOut}
             >
               <span className="material-symbols-outlined text-[16px]">logout</span>
@@ -563,19 +548,19 @@ export function App() {
       )}
 
       {/* 2. CONTENEDOR PRINCIPAL */}
-      <div className={`md:pl-72 min-h-screen ${theme === 'dark' ? 'bg-[#08080a]' : 'bg-slate-50'} relative flex flex-col h-screen overflow-hidden`}>
+      <div className="md:pl-72 min-h-screen bg-slate-100 text-slate-900 dark:bg-[#08080a] dark:text-neutral-100 relative flex flex-col h-screen overflow-hidden">
         {/* HEADER SUPERIOR */}
-        <header className={`fixed top-0 left-0 md:left-72 right-0 h-16 ${theme === 'dark' ? 'bg-[#0c0c10]/90 border-[#1e1e28]' : 'bg-white/90 border-slate-200'} border-b backdrop-blur-xl z-30 flex items-center justify-between px-4 sm:px-6 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.15)]`}>
+        <header className="fixed top-0 left-0 md:left-72 right-0 h-16 bg-white/95 border-slate-200 text-slate-800 dark:bg-[#0c0c10]/95 dark:border-[#272735] dark:text-white border-b backdrop-blur-xl z-30 flex items-center justify-between px-4 sm:px-6 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_-4px_rgba(0,0,0,0.3)]">
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => setIsMobileSidebarOpen(true)}
-              className={`md:hidden p-2 rounded-xl ${theme === 'dark' ? 'bg-[#16161f] border-[#272735] text-yellow-400' : 'bg-slate-100 border-slate-300 text-yellow-600'} border cursor-pointer`}
+              className="md:hidden p-2 rounded-xl bg-slate-100 border-slate-300 text-yellow-600 dark:bg-[#16161f] dark:border-[#272735] dark:text-yellow-400 border cursor-pointer"
               title="Abrir menú"
             >
               <span className="material-symbols-outlined text-[20px]">menu</span>
             </button>
-            <div className={`flex items-center gap-2 ${theme === 'dark' ? 'bg-[#16161f] border-yellow-500/30 text-yellow-300' : 'bg-slate-100 border-yellow-600/30 text-yellow-700'} border px-3 py-1 rounded-full text-xs font-mono shadow-sm`}>
+            <div className="flex items-center gap-2 bg-slate-100 border-slate-200 text-yellow-700 dark:bg-[#16161f] dark:border-yellow-500/30 dark:text-yellow-300 border px-3 py-1 rounded-full text-xs font-mono shadow-sm">
               <span className="material-symbols-outlined text-[16px] text-yellow-500 dark:text-yellow-400 animate-pulse">near_me</span>
               <span className="hidden sm:inline">{t.nav.feedTitle}</span>
               <span className="sm:hidden font-bold">{t.nav.feedTitleMobile}</span>
@@ -587,7 +572,7 @@ export function App() {
             <button
               type="button"
               onClick={toggleLanguage}
-              className={`h-8 px-2.5 py-1 text-xs font-mono font-bold rounded-xl ${theme === 'dark' ? 'bg-[#15151d]/90 hover:bg-[#1f1f2c] border-[#272735] text-neutral-300' : 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700'} border hover:border-yellow-500/40 hover:text-yellow-500 backdrop-blur-md transition-all flex items-center gap-1 active:scale-95 cursor-pointer shadow-sm`}
+              className="h-8 px-2.5 py-1 text-xs font-mono font-bold rounded-xl bg-white hover:bg-slate-100 border-slate-200 text-slate-700 dark:bg-[#15151d]/90 dark:hover:bg-[#1f1f2c] dark:border-[#272735] dark:text-neutral-300 border hover:border-yellow-500/40 hover:text-yellow-500 backdrop-blur-md transition-all flex items-center gap-1 active:scale-95 cursor-pointer shadow-sm"
               title={lang === 'ES' ? 'Switch to English' : 'Cambiar a Español'}
             >
               <span className="material-symbols-outlined text-[15px] text-yellow-500 dark:text-yellow-400">translate</span>
@@ -598,7 +583,7 @@ export function App() {
             <button
               type="button"
               onClick={toggleTheme}
-              className={`h-8 w-8 rounded-xl ${theme === 'dark' ? 'bg-[#15151d]/90 hover:bg-[#1f1f2c] border-[#272735] text-neutral-300' : 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700'} border hover:border-yellow-500/40 hover:text-yellow-500 backdrop-blur-md transition-all flex items-center justify-center active:scale-95 cursor-pointer shadow-sm`}
+              className="h-8 w-8 rounded-xl bg-white hover:bg-slate-100 border-slate-200 text-slate-700 dark:bg-[#15151d]/90 dark:hover:bg-[#1f1f2c] dark:border-[#272735] dark:text-neutral-300 border hover:border-yellow-500/40 hover:text-yellow-500 backdrop-blur-md transition-all flex items-center justify-center active:scale-95 cursor-pointer shadow-sm"
               title={theme === 'dark' ? (lang === 'ES' ? 'Cambiar a modo claro' : 'Switch to light mode') : (lang === 'ES' ? 'Cambiar a modo oscuro' : 'Switch to dark mode')}
             >
               <span className="material-symbols-outlined text-[17px] text-yellow-500 dark:text-yellow-400">
@@ -663,9 +648,7 @@ export function App() {
               className={`h-8 px-3 rounded-xl text-xs font-black flex items-center gap-2 transition cursor-pointer active:scale-95 ${
                 showSenda
                   ? 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-stone-950 shadow-[0_0_18px_rgba(250,204,21,0.4)] border border-yellow-200'
-                  : theme === 'dark'
-                    ? 'bg-[#101016]/95 border border-yellow-500/40 text-yellow-300 hover:bg-yellow-500/20 shadow-lg'
-                    : 'bg-white/95 border border-yellow-600/40 text-yellow-700 hover:bg-yellow-50 shadow-md'
+                  : 'bg-white/95 border-slate-200 text-yellow-800 hover:border-yellow-500 hover:bg-yellow-50 dark:bg-[#101016]/95 dark:border-yellow-500/40 dark:text-yellow-300 dark:hover:bg-yellow-500/20 border shadow-md'
               }`}
             >
               <span className="material-symbols-outlined text-[15px]">route</span>
@@ -679,7 +662,7 @@ export function App() {
                   window.dispatchEvent(new CustomEvent('show-poi-category', { detail: { category: 'restaurantes' } }));
                 }
               }}
-              className={`h-8 px-3 rounded-xl ${theme === 'dark' ? 'bg-[#101016]/95 border-yellow-500/40 hover:border-yellow-400 text-yellow-200' : 'bg-white/95 border-yellow-600/40 hover:border-yellow-500 text-yellow-800'} border text-xs font-bold flex items-center gap-1.5 shadow-md active:scale-95 transition cursor-pointer`}
+              className="h-8 px-3 rounded-xl bg-white/95 border-slate-200 hover:border-yellow-500 text-yellow-800 dark:bg-[#101016]/95 dark:border-yellow-500/40 dark:hover:border-yellow-400 dark:text-yellow-200 border text-xs font-bold flex items-center gap-1.5 shadow-md active:scale-95 transition cursor-pointer"
             >
               <span>🍴</span>
               <span>{t.filters.gastronomy}</span>
@@ -692,7 +675,7 @@ export function App() {
                   window.dispatchEvent(new CustomEvent('show-poi-category', { detail: { category: 'salud' } }));
                 }
               }}
-              className={`h-8 px-3 rounded-xl ${theme === 'dark' ? 'bg-[#101016]/95 border-rose-500/30 hover:border-rose-400 text-rose-200' : 'bg-white/95 border-rose-500/40 hover:border-rose-500 text-rose-800'} border text-xs font-bold flex items-center gap-1.5 shadow-md active:scale-95 transition cursor-pointer`}
+              className="h-8 px-3 rounded-xl bg-white/95 border-slate-200 hover:border-rose-500 text-rose-800 dark:bg-[#101016]/95 dark:border-rose-500/30 dark:hover:border-rose-400 dark:text-rose-200 border text-xs font-bold flex items-center gap-1.5 shadow-md active:scale-95 transition cursor-pointer"
             >
               <span>🚑</span>
               <span>{t.filters.healthPosts}</span>
@@ -705,7 +688,7 @@ export function App() {
                   window.dispatchEvent(new CustomEvent('show-poi-category', { detail: { category: 'policia' } }));
                 }
               }}
-              className={`h-8 px-3 rounded-xl ${theme === 'dark' ? 'bg-[#101016]/95 border-blue-500/30 hover:border-blue-400 text-blue-200' : 'bg-white/95 border-blue-500/40 hover:border-blue-500 text-blue-800'} border text-xs font-bold flex items-center gap-1.5 shadow-md active:scale-95 transition cursor-pointer`}
+              className="h-8 px-3 rounded-xl bg-white/95 border-slate-200 hover:border-blue-500 text-blue-800 dark:bg-[#101016]/95 dark:border-blue-500/30 dark:hover:border-blue-400 dark:text-blue-200 border text-xs font-bold flex items-center gap-1.5 shadow-md active:scale-95 transition cursor-pointer"
             >
               <span>👮</span>
               <span>{t.filters.policeCai}</span>
@@ -718,7 +701,7 @@ export function App() {
                   window.dispatchEvent(new CustomEvent('show-poi-category', { detail: { category: 'banio' } }));
                 }
               }}
-              className={`h-8 px-3 rounded-xl ${theme === 'dark' ? 'bg-[#101016]/95 border-emerald-500/30 hover:border-emerald-400 text-emerald-200' : 'bg-white/95 border-emerald-500/40 hover:border-emerald-500 text-emerald-800'} border text-xs font-bold flex items-center gap-1.5 shadow-md active:scale-95 transition cursor-pointer`}
+              className="h-8 px-3 rounded-xl bg-white/95 border-slate-200 hover:border-emerald-500 text-emerald-800 dark:bg-[#101016]/95 dark:border-emerald-500/30 dark:hover:border-emerald-400 dark:text-emerald-200 border text-xs font-bold flex items-center gap-1.5 shadow-md active:scale-95 transition cursor-pointer"
             >
               <span>🚻</span>
               <span>{t.filters.restrooms}</span>
@@ -726,11 +709,11 @@ export function App() {
           </div>
 
           {/* BARRA DE TELEMETRÍA INFERIOR IZQUIERDA */}
-          <div className={`absolute left-4 sm:left-6 bottom-6 z-20 hidden md:flex items-center gap-3 ${theme === 'dark' ? 'bg-[#0c0c10]/95 border-[#222230] text-white' : 'bg-white/95 border-slate-200 text-slate-800'} border backdrop-blur-xl px-4 py-2 rounded-xl shadow-xl text-xs font-mono select-none`}>
+          <div className="absolute left-4 sm:left-6 bottom-6 z-20 hidden md:flex items-center gap-3 bg-white/90 border-slate-200 text-slate-900 dark:bg-[#0c0c10]/90 dark:border-[#272735] dark:text-white border backdrop-blur-xl px-4 py-2 rounded-xl shadow-xl text-xs font-mono select-none">
             <span className="font-bold">{t.telemetry.carnivalTitle}</span>
-            <span className="text-neutral-400">|</span>
+            <span className="text-slate-400 dark:text-neutral-400">|</span>
             <span className="text-yellow-600 dark:text-yellow-300 font-bold">{t.telemetry.spectators}</span>
-            <span className="text-neutral-400">|</span>
+            <span className="text-slate-400 dark:text-neutral-400">|</span>
             <span className="text-yellow-600 dark:text-yellow-400 font-bold">{t.telemetry.temp}</span>
           </div>
 
@@ -738,7 +721,7 @@ export function App() {
           <button
             type="button"
             onClick={() => centerOnMe()}
-            className={`absolute left-4 sm:left-6 bottom-16 md:bottom-18 z-20 flex items-center gap-2 px-3 py-1.5 rounded-xl ${theme === 'dark' ? 'bg-[#101016]/90 border-yellow-500/30 hover:border-yellow-400 text-yellow-300' : 'bg-white/90 border-yellow-600/40 hover:border-yellow-500 text-yellow-700'} border text-xs font-mono font-bold shadow-lg transition active:scale-95 cursor-pointer`}
+            className="absolute left-4 sm:left-6 bottom-16 md:bottom-18 z-20 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/90 border-slate-200 text-yellow-700 hover:border-yellow-500 dark:bg-[#101016]/90 dark:border-yellow-500/30 dark:hover:border-yellow-400 dark:text-yellow-300 border text-xs font-mono font-bold shadow-lg transition active:scale-95 cursor-pointer"
             title={t.telemetry.centerOnMe}
           >
             <Crosshair className="w-3.5 h-3.5 text-yellow-500 dark:text-yellow-400" />

@@ -32,24 +32,24 @@ export function CitizenReportsModal({
         aria-hidden="true"
       />
 
-      <div className="relative w-full max-w-3xl max-h-[90vh] bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200/60 dark:border-slate-800/60 rounded-3xl shadow-2xl flex flex-col overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200 text-slate-800 dark:text-slate-100">
+      <div className="relative w-full max-w-3xl max-h-[90vh] bg-white border border-slate-200 text-slate-900 dark:bg-[#0c0c10] dark:border-[#272735] dark:text-white backdrop-blur-xl rounded-3xl shadow-2xl flex flex-col overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200">
         {/* Encabezado */}
-        <header className="px-6 py-5 border-b border-slate-200/60 dark:border-white/10 flex items-center justify-between gap-4 bg-slate-50/70 dark:bg-slate-950/60">
+        <header className="px-6 py-5 border-b border-slate-200 dark:border-[#272735] flex items-center justify-between gap-4 bg-slate-50 dark:bg-[#14141c]">
           <div className="flex items-center gap-3 min-w-0">
             <div className="flex items-center justify-center w-11 h-11 rounded-2xl bg-gradient-to-tr from-coral-500 to-rose-500 text-white shadow-md shadow-rose-500/20 shrink-0">
               <ShieldAlert className="w-5 h-5 text-white" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h2 className="text-base sm:text-xl font-black text-white tracking-tight truncate">
+                <h2 className="text-base sm:text-xl font-black text-slate-900 dark:text-white tracking-tight truncate">
                   Reportes Ciudadanos en la Senda
                 </h2>
-                <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-coral-500/10 text-coral-300 border border-coral-500/20 shrink-0">
+                <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-coral-500/10 text-coral-600 dark:text-coral-300 border border-coral-500/20 shrink-0">
                   <Sparkles className="w-2.5 h-2.5" />
                   {reports.length} activos
                 </span>
               </div>
-              <p className="text-xs text-slate-400 mt-0.5 truncate">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
                 Monitoreo colaborativo en tiempo real del Carnaval de Pasto
               </p>
             </div>
@@ -70,7 +70,7 @@ export function CitizenReportsModal({
             <button
               type="button"
               onClick={onClose}
-              className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-xl transition cursor-pointer"
+              className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/10 rounded-xl transition cursor-pointer"
               aria-label="Cerrar reportes"
             >
               <X className="w-5 h-5" />
@@ -79,7 +79,7 @@ export function CitizenReportsModal({
         </header>
 
         {/* Barra de Filtros por Nivel de Riesgo */}
-        <div className="px-6 py-3 border-b border-slate-200/60 dark:border-white/5 bg-slate-50/50 dark:bg-slate-950/40 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
+        <div className="px-6 py-3 border-b border-slate-200 dark:border-[#272735] bg-slate-50/70 dark:bg-slate-950/40 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
           <div className="flex items-center gap-1.5">
             <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider pr-1 flex items-center gap-1">
               <Filter className="w-3 h-3 text-slate-500 dark:text-slate-400" />
@@ -168,7 +168,7 @@ export function CitizenReportsModal({
               return (
                 <div
                   key={report.id}
-                  className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/40 hover:bg-slate-100/80 dark:hover:bg-slate-800/50 border border-slate-200/70 dark:border-white/10 transition-all flex flex-col justify-between gap-2 shadow-sm"
+                  className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/40 hover:bg-slate-100 dark:hover:bg-slate-800/50 border border-slate-200 dark:border-white/10 transition-all flex flex-col justify-between gap-2 shadow-sm"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">

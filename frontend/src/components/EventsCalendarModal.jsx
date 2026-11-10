@@ -30,24 +30,24 @@ export function EventsCalendarModal({
       />
 
       {/* Contenedor Modal */}
-      <div className="relative w-full max-w-4xl max-h-[90vh] bg-slate-900/95 backdrop-blur-xl border border-slate-700/50 rounded-3xl shadow-2xl flex flex-col overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-4xl max-h-[90vh] bg-white border border-slate-200 text-slate-900 dark:bg-[#0c0c10] dark:border-[#272735] dark:text-white backdrop-blur-xl rounded-3xl shadow-2xl flex flex-col overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200">
         {/* Encabezado */}
-        <header className="px-6 py-5 border-b border-white/10 flex items-center justify-between gap-4 bg-slate-950/60">
+        <header className="px-6 py-5 border-b border-slate-200 dark:border-[#272735] flex items-center justify-between gap-4 bg-slate-50 dark:bg-[#14141c]">
           <div className="flex items-center gap-3">
             <div className="flex items-center justify-center w-11 h-11 rounded-2xl bg-gradient-to-tr from-coral-500 to-rose-500 text-white shadow-md shadow-rose-500/20 shrink-0">
               <Calendar className="w-5 h-5 text-white" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 id="calendar-modal-title" className="text-lg sm:text-xl font-black text-white tracking-tight">
+                <h2 id="calendar-modal-title" className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">
                   Calendario de Eventos
                 </h2>
-                <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-coral-500/10 text-coral-300 border border-coral-500/20">
+                <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-coral-500/10 text-coral-600 dark:text-coral-300 border border-coral-500/20">
                   <Sparkles className="w-2.5 h-2.5" />
                   Pasto 2026
                 </span>
               </div>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 Programación oficial del Carnaval de Negros y Blancos
               </p>
             </div>
@@ -56,7 +56,7 @@ export function EventsCalendarModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-xl transition cursor-pointer"
+            className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/10 rounded-xl transition cursor-pointer"
             aria-label="Cerrar calendario"
           >
             <X className="w-5 h-5" />
@@ -76,8 +76,8 @@ export function EventsCalendarModal({
                   onClick={() => handleSelectEvent(day.id)}
                   className={`group relative p-4 rounded-2xl border transition-all duration-200 cursor-pointer flex flex-col justify-between ${
                     isSelected
-                      ? 'bg-slate-800/90 border-coral-500/40 shadow-lg shadow-coral-500/10 ring-1 ring-coral-500/40'
-                      : 'bg-slate-950/40 hover:bg-slate-800/50 border-white/10 hover:border-white/20'
+                      ? 'bg-slate-100 border-coral-500/50 shadow-md ring-1 ring-coral-500/40 dark:bg-slate-800/90 dark:border-coral-500/40 dark:shadow-coral-500/10'
+                      : 'bg-slate-50/80 hover:bg-slate-100 border-slate-200 dark:bg-slate-950/40 dark:hover:bg-slate-800/50 dark:border-white/10'
                   }`}
                 >
                   <div>
@@ -88,37 +88,37 @@ export function EventsCalendarModal({
                           className="w-2.5 h-2.5 rounded-full"
                           style={{ backgroundColor: event?.color || '#a8a29e' }}
                         />
-                        <span className="text-xs font-black uppercase tracking-wider text-coral-400">
+                        <span className="text-xs font-black uppercase tracking-wider text-coral-600 dark:text-coral-400">
                           {day.label}
                         </span>
                       </div>
-                      <div className="flex items-center gap-1 text-[11px] text-slate-400 font-mono">
+                      <div className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400 font-mono">
                         <Clock className="w-3 h-3 text-slate-400" />
                         <span>{event?.hours}</span>
                       </div>
                     </div>
 
                     {/* Título */}
-                    <h3 className="text-sm font-bold text-white group-hover:text-coral-300 transition-colors leading-snug">
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-coral-600 dark:group-hover:text-coral-300 transition-colors leading-snug">
                       {event?.name}
                     </h3>
 
                     {/* Descripción */}
-                    <p className="text-xs text-slate-400 mt-1.5 leading-relaxed line-clamp-2">
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed line-clamp-2">
                       {event?.description}
                     </p>
                   </div>
 
                   {/* Fila inferior: Estado de Vía y Botón de Acción */}
-                  <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between gap-2 text-xs">
-                    <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+                  <div className="mt-4 pt-3 border-t border-slate-200 dark:border-white/5 flex items-center justify-between gap-2 text-xs">
+                    <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
                       {event?.closedPoints && event.closedPoints.length > 0 ? (
-                        <span className="inline-flex items-center gap-1 text-rose-300 font-medium">
+                        <span className="inline-flex items-center gap-1 text-rose-600 dark:text-rose-300 font-medium">
                           <span>⛔</span>
                           <span>{event.closedPoints.length} cierres viales</span>
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-aqua-300 font-medium">
+                        <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-aqua-300 font-medium">
                           <span>✅</span>
                           <span>Vías habilitadas</span>
                         </span>
@@ -134,7 +134,7 @@ export function EventsCalendarModal({
                       className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                         isSelected
                           ? 'bg-gradient-to-r from-coral-500 to-rose-500 text-white font-bold shadow-sm'
-                          : 'bg-white/5 group-hover:bg-coral-500/20 text-slate-300 group-hover:text-coral-300 border border-white/10'
+                          : 'bg-slate-200/70 group-hover:bg-coral-500/20 text-slate-700 group-hover:text-coral-600 dark:bg-white/5 dark:text-slate-300 dark:group-hover:text-coral-300 border border-slate-300 dark:border-white/10'
                       }`}
                     >
                       <span>{isSelected ? 'Viendo en la Senda' : 'Ver en la Senda'}</span>
@@ -148,12 +148,12 @@ export function EventsCalendarModal({
         </div>
 
         {/* Pie de modal */}
-        <footer className="px-6 py-3.5 border-t border-white/10 bg-slate-950/60 flex items-center justify-between text-xs text-slate-400">
+        <footer className="px-6 py-3.5 border-t border-slate-200 dark:border-[#272735] bg-slate-50 dark:bg-slate-950/60 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
           <span>Selecciona cualquier evento para ubicar su recorrido en el mapa</span>
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-medium transition cursor-pointer"
+            className="px-4 py-1.5 rounded-xl bg-slate-200/70 hover:bg-slate-200 text-slate-800 dark:bg-white/5 dark:hover:bg-white/10 dark:text-white font-medium transition cursor-pointer"
           >
             Cerrar
           </button>
