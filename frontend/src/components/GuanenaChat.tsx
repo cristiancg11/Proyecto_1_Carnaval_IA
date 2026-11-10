@@ -11,6 +11,7 @@ import { findBestPOIForQuery } from '../data/pastoPOIs';
 import { getStreetRoute } from '../services/routingService';
 import { poiWorkerClient } from '../services/poiWorkerClient';
 import { scheduleNextFrame, scheduleMicrotask } from '../utils/performance';
+import { getTranslation, Language } from '../utils/i18n';
 
 export interface GuanenaChatProps {
   onRouteReceived?: (
@@ -25,6 +26,7 @@ export interface GuanenaChatProps {
   className?: string;
   isOpen?: boolean;
   onToggle?: () => void;
+  lang?: Language;
 }
 
 export interface ChatMessage {
@@ -117,10 +119,36 @@ export const GuanenaChat: React.FC<GuanenaChatProps> = ({
   className = '',
   isOpen: propIsOpen,
   onToggle: propOnToggle,
+  lang: propLang,
 }) => {
   const { location, centerOnMe } = useRealtimeLocation();
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isOpen = propIsOpen !== undefined ? propIsOpen : internalIsOpen;
+
+  const currentLang = propLang || (typeof window !== 'undefined' ? (localStorage.getItem('carnavalia-lang') as Language) || 'ES' : 'ES');
+  const [activeLang, setActiveLang] = useState<Language>(currentLang);
+
+  useEffect(() => {
+    if (propLang) {
+      setActiveLang(propLang);
+    }
+  }, [propLang]);
+
+  useEffect(() => {
+    const handleLangChange = (e: CustomEvent<Language> | any) => {
+      const newLang = e.detail?.language || e.detail;
+      if (newLang === 'ES' || newLang === 'EN') {
+        setActiveLang(newLang);
+      }
+    };
+    window.addEventListener('language-change', handleLangChange as EventListener);
+    return () => {
+      window.removeEventListener('language-change', handleLangChange as EventListener);
+    };
+  }, []);
+
+  const t = getTranslation(activeLang).guanena;
+
   const toggleOpen = useCallback(() => {
     if (propOnToggle) {
       propOnToggle();
@@ -150,15 +178,32 @@ export const GuanenaChat: React.FC<GuanenaChatProps> = ({
     {
       id: 'welcome-init',
       role: 'model',
-      content: '¡Qué viva Pasto, carajo! 🎭 Soy **GuaneñaBot**, tu copiloto inteligente para el Carnaval de Negros y Blancos.\n\nPregúntame por los desfiles, recorridos, la Senda del Carnaval o cómo llegar a las plazas y puntos clave. ¡Te trazaré la ruta en el mapa al instante!',
-      timestamp: 'Ahora',
+      content: t.greeting,
+      timestamp: activeLang === 'ES' ? 'Ahora' : 'Just now',
     },
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>(DEFAULT_SUGGESTIONS);
+  const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>(t.suggestions || DEFAULT_SUGGESTIONS);
   const [isPending, startUiTransition] = useTransition();
   const deferredInput = useDeferredValue(inputMessage);
+
+  useEffect(() => {
+    setMessages((prev) => {
+      if (prev.length === 1 && prev[0].id === 'welcome-init') {
+        return [
+          {
+            id: 'welcome-init',
+            role: 'model',
+            content: t.greeting,
+            timestamp: activeLang === 'ES' ? 'Ahora' : 'Just now',
+          },
+        ];
+      }
+      return prev;
+    });
+    setSuggestedQuestions(t.suggestions || DEFAULT_SUGGESTIONS);
+  }, [activeLang, t.greeting, t.suggestions]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -395,7 +440,9 @@ export const GuanenaChat: React.FC<GuanenaChatProps> = ({
       const errorMessage: ChatMessage = {
         id: `err-${Date.now()}`,
         role: 'model',
-        content: '¡Qué pena, paisano! Hubo un detalle al consultar el servidor. Pero no te preocupés: puedes explorar la Senda directamente en el mapa.',
+        content: activeLang === 'ES'
+          ? '¡Qué pena, paisano! Hubo un detalle al consultar el servidor. Pero no te preocupés: puedes explorar la Senda directamente en el mapa.'
+          : 'Sorry, there was a temporary issue contacting the server. You can still explore the Senda and POIs directly on the map!',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -409,11 +456,13 @@ export const GuanenaChat: React.FC<GuanenaChatProps> = ({
       {
         id: 'welcome-init',
         role: 'model',
-        content: '¡Conversación reiniciada! ¿Qué recorrido o punto del Carnaval querés que exploremos ahora?',
-        timestamp: 'Ahora',
+        content: activeLang === 'ES'
+          ? '¡Conversación reiniciada! ¿Qué recorrido o punto del Carnaval querés que exploremos ahora?'
+          : 'Conversation reset! Which Carnival route or POI would you like to explore now?',
+        timestamp: activeLang === 'ES' ? 'Ahora' : 'Just now',
       },
     ]);
-    setSuggestedQuestions(DEFAULT_SUGGESTIONS);
+    setSuggestedQuestions(t.suggestions || DEFAULT_SUGGESTIONS);
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('CLEAR_MAP_ROUTE'));
     }
@@ -428,7 +477,7 @@ export const GuanenaChat: React.FC<GuanenaChatProps> = ({
           type="button"
           onClick={() => toggleOpen()}
           className="fixed bottom-6 right-6 z-[9999] pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-stone-950 font-bold shadow-[0_0_25px_rgba(250,204,21,0.5)] border border-yellow-200 active:scale-95 transition-all cursor-pointer group select-none"
-          aria-label="Abrir chat de GuaneñaBot"
+          aria-label={activeLang === 'ES' ? 'Abrir chat de GuaneñaBot' : 'Open GuaneñaBot chat'}
           title="GuaneñaBot • Asistente Inteligente del Carnaval de Pasto"
         >
           <span className="material-symbols-outlined text-[20px] text-[#1a1400]">smart_toy</span>
@@ -441,23 +490,25 @@ export const GuanenaChat: React.FC<GuanenaChatProps> = ({
       {isOpen && (
         <aside
           role="complementary"
-          aria-label="Ventana de GuaneñaBot"
-          className={`fixed bottom-6 right-4 sm:right-6 z-[9999] pointer-events-auto w-[380px] max-w-[calc(100vw-2rem)] h-[520px] max-h-[82vh] rounded-2xl bg-[#0c0c10]/95 border border-yellow-500/35 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.85)] flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300 ${className}`}
+          aria-label={activeLang === 'ES' ? 'Ventana de GuaneñaBot' : 'GuaneñaBot Window'}
+          className={`fixed bottom-6 right-4 sm:right-6 z-[9999] pointer-events-auto w-[380px] max-w-[calc(100vw-2rem)] h-[520px] max-h-[82vh] rounded-2xl bg-white/95 dark:bg-[#0c0c10]/95 border border-slate-300 dark:border-yellow-500/35 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.85)] flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300 ${className}`}
         >
           {/* Header con estilo Stitch */}
-          <div className="p-3 bg-[#14141c] border-b border-[#222230] flex items-center justify-between select-none">
+          <div className="p-3 bg-slate-100 dark:bg-[#14141c] border-b border-slate-200 dark:border-[#222230] flex items-center justify-between select-none">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-lg bg-yellow-400 flex items-center justify-center text-stone-950 font-bold shadow-[0_0_12px_rgba(250,204,21,0.4)]">
                 <span className="material-symbols-outlined text-[18px]">smart_toy</span>
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-sm text-white font-bold tracking-tight">GuaneñaBot</span>
-                  <span className="text-[9px] font-black uppercase px-1.5 py-0.2 rounded bg-yellow-400/20 text-yellow-300 border border-yellow-400/30">
+                  <span className="text-sm text-slate-900 dark:text-white font-bold tracking-tight">GuaneñaBot</span>
+                  <span className="text-[9px] font-black uppercase px-1.5 py-0.2 rounded bg-yellow-400/20 text-yellow-600 dark:text-yellow-300 border border-yellow-400/30">
                     2.5 FLASH
                   </span>
                 </div>
-                <span className="text-[10px] text-neutral-400 font-mono">Conectado a Red SIG Pasto</span>
+                <span className="text-[10px] text-slate-500 dark:text-neutral-400 font-mono">
+                  {activeLang === 'ES' ? 'Conectado a Red SIG Pasto' : 'Connected to Pasto GIS Network'}
+                </span>
               </div>
             </div>
 
@@ -465,18 +516,18 @@ export const GuanenaChat: React.FC<GuanenaChatProps> = ({
               <button
                 type="button"
                 onClick={handleResetConversation}
-                className="p-1.5 text-neutral-400 hover:text-white rounded-lg hover:bg-white/10 transition cursor-pointer"
-                title="Reiniciar conversación"
-                aria-label="Reiniciar conversación"
+                className="p-1.5 text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white rounded-lg hover:bg-slate-200 dark:hover:bg-white/10 transition cursor-pointer"
+                title={activeLang === 'ES' ? 'Reiniciar conversación' : 'Reset conversation'}
+                aria-label={activeLang === 'ES' ? 'Reiniciar conversación' : 'Reset conversation'}
               >
                 <RotateCcw className="w-4 h-4" />
               </button>
               <button
                 type="button"
                 onClick={() => toggleOpen()}
-                className="p-1.5 text-neutral-400 hover:text-white rounded-lg hover:bg-white/10 transition cursor-pointer"
-                title="Minimizar GuaneñaBot"
-                aria-label="Cerrar chat"
+                className="p-1.5 text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white rounded-lg hover:bg-slate-200 dark:hover:bg-white/10 transition cursor-pointer"
+                title={activeLang === 'ES' ? 'Minimizar GuaneñaBot' : 'Minimize GuaneñaBot'}
+                aria-label={activeLang === 'ES' ? 'Cerrar chat' : 'Close chat'}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -484,7 +535,7 @@ export const GuanenaChat: React.FC<GuanenaChatProps> = ({
           </div>
 
           {/* Body: Historial de Mensajes */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3.5 no-scrollbar">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3.5 no-scrollbar bg-slate-50/50 dark:bg-transparent">
             {messages.map((msg) => {
               const isUser = msg.role === 'user';
               return (
@@ -494,7 +545,7 @@ export const GuanenaChat: React.FC<GuanenaChatProps> = ({
                 >
                   <div className={`flex items-end gap-2 max-w-[88%] ${isUser ? 'justify-end' : 'justify-start'}`}>
                     {!isUser && (
-                      <div className="w-7 h-7 rounded-xl bg-slate-900 border border-amber-500/30 flex items-center justify-center text-xs shrink-0 mb-1 shadow-md">
+                      <div className="w-7 h-7 rounded-xl bg-slate-200 dark:bg-slate-900 border border-slate-300 dark:border-amber-500/30 flex items-center justify-center text-xs shrink-0 mb-1 shadow-md">
                         🎭
                       </div>
                     )}
@@ -502,61 +553,61 @@ export const GuanenaChat: React.FC<GuanenaChatProps> = ({
                     <div
                       className={`px-3.5 py-2.5 rounded-2xl text-xs sm:text-[13px] leading-relaxed shadow-md ${isUser
                           ? 'bg-gradient-to-r from-rose-600 to-rose-700 text-white font-medium rounded-tr-none shadow-rose-900/40'
-                          : 'bg-slate-900/85 backdrop-blur-md border border-white/10 text-slate-100 rounded-tl-none font-normal'
+                          : 'bg-white dark:bg-slate-900/85 backdrop-blur-md border border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-100 rounded-tl-none font-normal'
                         }`}
                     >
                       <MarkdownMessage content={msg.content} />
 
                       {/* Resumen de Horarios de la Senda en la Burbuja */}
                       {!isUser && msg.schedule && (
-                        <div className="my-2.5 p-3 rounded-xl bg-slate-950/80 border border-amber-500/35 shadow-lg shadow-black/50 text-white font-sans select-none">
-                          <div className="flex items-center justify-between border-b border-white/10 pb-1.5 mb-2">
-                            <div className="flex items-center gap-1.5 font-bold text-amber-400 text-xs">
+                        <div className="my-2.5 p-3 rounded-xl bg-slate-100 dark:bg-slate-950/80 border border-amber-500/35 shadow-lg shadow-black/10 dark:shadow-black/50 text-slate-900 dark:text-white font-sans select-none">
+                          <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/10 pb-1.5 mb-2">
+                            <div className="flex items-center gap-1.5 font-bold text-amber-600 dark:text-amber-400 text-xs">
                               <span>🎭</span>
                               <span className="uppercase tracking-wide">
-                                {msg.schedule.event_name || 'Telemetría de la Senda'}
+                                {msg.schedule.event_name || (activeLang === 'ES' ? 'Telemetría de la Senda' : 'Senda Telemetry')}
                               </span>
                             </div>
                             {msg.schedule.distance_km && (
-                              <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono text-[10px] font-bold">
+                              <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300 font-mono text-[10px] font-bold">
                                 {msg.schedule.distance_km}
                               </span>
                             )}
                           </div>
 
                           <div className="grid grid-cols-2 gap-2 text-[11px]">
-                            <div className="bg-emerald-950/40 p-2 rounded-lg border border-emerald-500/25">
-                              <div className="flex items-center gap-1 text-emerald-400 font-bold mb-0.5">
+                            <div className="bg-emerald-50 dark:bg-emerald-950/40 p-2 rounded-lg border border-emerald-300 dark:border-emerald-500/25">
+                              <div className="flex items-center gap-1 text-emerald-700 dark:text-emerald-400 font-bold mb-0.5">
                                 <span>🚩</span>
-                                <span className="uppercase text-[9px] tracking-wider">Salida</span>
+                                <span className="uppercase text-[9px] tracking-wider">{activeLang === 'ES' ? 'Salida' : 'Start'}</span>
                               </div>
-                              <p className="font-semibold text-white leading-tight truncate" title={msg.schedule.start_location}>
+                              <p className="font-semibold text-slate-800 dark:text-white leading-tight truncate" title={msg.schedule.start_location}>
                                 {msg.schedule.start_location}
                               </p>
-                              <p className="text-emerald-300 font-mono text-[10px] mt-0.5">
-                                Hora: {msg.schedule.start_time}
+                              <p className="text-emerald-600 dark:text-emerald-300 font-mono text-[10px] mt-0.5">
+                                {activeLang === 'ES' ? 'Hora' : 'Time'}: {msg.schedule.start_time}
                               </p>
                             </div>
 
-                            <div className="bg-amber-950/40 p-2 rounded-lg border border-amber-500/25">
-                              <div className="flex items-center gap-1 text-amber-400 font-bold mb-0.5">
+                            <div className="bg-amber-50 dark:bg-amber-950/40 p-2 rounded-lg border border-amber-300 dark:border-amber-500/25">
+                              <div className="flex items-center gap-1 text-amber-700 dark:text-amber-400 font-bold mb-0.5">
                                 <span>🏁</span>
-                                <span className="uppercase text-[9px] tracking-wider">Llegada</span>
+                                <span className="uppercase text-[9px] tracking-wider">{activeLang === 'ES' ? 'Llegada' : 'Finish'}</span>
                               </div>
-                              <p className="font-semibold text-white leading-tight truncate" title={msg.schedule.finish_location}>
+                              <p className="font-semibold text-slate-800 dark:text-white leading-tight truncate" title={msg.schedule.finish_location}>
                                 {msg.schedule.finish_location}
                               </p>
-                              <p className="text-amber-300 font-mono text-[10px] mt-0.5">
+                              <p className="text-amber-600 dark:text-amber-300 font-mono text-[10px] mt-0.5">
                                 Est: {msg.schedule.estimated_arrival_time}
                               </p>
                             </div>
                           </div>
 
                           {Array.isArray(msg.nearbyPlaces) && msg.nearbyPlaces.length > 0 && (
-                            <div className="mt-2 pt-1.5 border-t border-white/10 flex items-center justify-between text-[10px] text-slate-400 font-mono">
-                              <span>Puntos de apoyo activos:</span>
-                              <span className="text-cyan-300 font-bold">
-                                ✨ {msg.nearbyPlaces.length} servicios en mapa
+                            <div className="mt-2 pt-1.5 border-t border-slate-200 dark:border-white/10 flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 font-mono">
+                              <span>{activeLang === 'ES' ? 'Puntos de apoyo activos:' : 'Active support points:'}</span>
+                              <span className="text-cyan-600 dark:text-cyan-300 font-bold">
+                                ✨ {msg.nearbyPlaces.length} {activeLang === 'ES' ? 'servicios en mapa' : 'services on map'}
                               </span>
                             </div>
                           )}
@@ -584,13 +635,13 @@ export const GuanenaChat: React.FC<GuanenaChatProps> = ({
                           className="mt-2.5 w-full py-2 px-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-slate-950 font-black text-xs shadow-md shadow-orange-600/30 transition-all active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
                         >
                           <Navigation className="w-3.5 h-3.5 text-slate-950 stroke-[2.5]" />
-                          <span>📍 Ver trazado en el mapa</span>
+                          <span>{activeLang === 'ES' ? '📍 Ver trazado en el mapa' : '📍 View path on map'}</span>
                         </button>
                       )}
                     </div>
                   </div>
 
-                  <span className={`text-[9px] text-slate-500 mt-1 font-mono ${isUser ? 'pr-1' : 'pl-9'}`}>
+                  <span className={`text-[9px] text-slate-400 dark:text-slate-500 mt-1 font-mono ${isUser ? 'pr-1' : 'pl-9'}`}>
                     {msg.timestamp}
                   </span>
                 </div>
@@ -601,17 +652,17 @@ export const GuanenaChat: React.FC<GuanenaChatProps> = ({
             {loading && (
               <div className="flex flex-col items-start animate-in fade-in duration-200">
                 <div className="flex items-end gap-2 max-w-[88%]">
-                  <div className="w-7 h-7 rounded-xl bg-slate-900 border border-amber-500/30 flex items-center justify-center text-xs shrink-0 mb-1">
+                  <div className="w-7 h-7 rounded-xl bg-slate-200 dark:bg-slate-900 border border-slate-300 dark:border-amber-500/30 flex items-center justify-center text-xs shrink-0 mb-1">
                     🎭
                   </div>
-                  <div className="px-3.5 py-2.5 rounded-2xl rounded-tl-none bg-slate-900/85 backdrop-blur-md border border-white/10 text-xs text-slate-300 flex items-center gap-2 shadow-sm">
+                  <div className="px-3.5 py-2.5 rounded-2xl rounded-tl-none bg-white dark:bg-slate-900/85 backdrop-blur-md border border-slate-200 dark:border-white/10 text-xs text-slate-600 dark:text-slate-300 flex items-center gap-2 shadow-sm">
                     <div className="flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-bounce" style={{ animationDelay: '0ms' }} />
                       <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-bounce" style={{ animationDelay: '150ms' }} />
                       <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-bounce" style={{ animationDelay: '300ms' }} />
                     </div>
-                    <span className="text-[11px] text-amber-300 font-medium">
-                      GuaneñaBot está consultando la ruta del Carnaval...
+                    <span className="text-[11px] text-amber-600 dark:text-amber-300 font-medium">
+                      {activeLang === 'ES' ? 'GuaneñaBot está consultando la ruta del Carnaval...' : 'GuaneñaBot is consulting the Carnival route...'}
                     </span>
                   </div>
                 </div>
@@ -622,7 +673,7 @@ export const GuanenaChat: React.FC<GuanenaChatProps> = ({
           </div>
 
           {/* Chips de Preguntas Sugeridas Clickeables (suggested_questions) */}
-          <div className="px-3.5 py-2 bg-slate-950/80 border-t border-white/10">
+          <div className="px-3.5 py-2 bg-slate-100/90 dark:bg-slate-950/80 border-t border-slate-200 dark:border-white/10">
             <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
               {suggestedQuestions.map((q, idx) => (
                 <button
@@ -630,10 +681,10 @@ export const GuanenaChat: React.FC<GuanenaChatProps> = ({
                   type="button"
                   onClick={() => handleSendMessage(q)}
                   disabled={loading}
-                  className="px-3 py-1.5 rounded-full bg-slate-900/90 hover:bg-amber-500/20 text-slate-200 hover:text-amber-300 border border-white/10 hover:border-amber-400/50 text-[11px] font-semibold whitespace-nowrap active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0 shadow-sm"
+                  className="px-3 py-1.5 rounded-full bg-white dark:bg-slate-900/90 hover:bg-amber-100 dark:hover:bg-amber-500/20 text-slate-700 dark:text-slate-200 hover:text-amber-800 dark:hover:text-amber-300 border border-slate-300 dark:border-white/10 hover:border-amber-400/50 text-[11px] font-semibold whitespace-nowrap active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0 shadow-sm"
                   title={q}
                 >
-                  <Sparkles className="w-3 h-3 text-amber-400" />
+                  <Sparkles className="w-3 h-3 text-amber-500 dark:text-amber-400" />
                   <span>{q}</span>
                 </button>
               ))}
@@ -646,24 +697,24 @@ export const GuanenaChat: React.FC<GuanenaChatProps> = ({
               e.preventDefault();
               handleSendMessage();
             }}
-            className="p-3 border-t border-white/10 bg-slate-950/95 flex items-center gap-2"
+            className="p-3 border-t border-slate-200 dark:border-white/10 bg-slate-100/95 dark:bg-slate-950/95 flex items-center gap-2"
           >
             <input
               id="guanena-chat-input-live"
               type="text"
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
-              placeholder="Pregúntale a GuaneñaBot (ej. ¿Cuál es el recorrido?)..."
+              placeholder={t.placeholder}
               disabled={loading}
-              className="flex-1 px-4 py-2.5 text-xs sm:text-sm bg-slate-900/80 border border-white/10 rounded-full text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 transition disabled:opacity-50"
+              className="flex-1 px-4 py-2.5 text-xs sm:text-sm bg-white dark:bg-slate-900/80 border border-slate-300 dark:border-white/10 rounded-full text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 transition disabled:opacity-50"
             />
             <button
               id="guanena-chat-send-btn-live"
               type="submit"
               disabled={!inputMessage.trim() || loading}
               className="w-10 h-10 rounded-full bg-yellow-400 hover:bg-yellow-300 text-stone-950 font-bold active:scale-95 transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-[0_0_15px_rgba(250,204,21,0.4)] flex items-center justify-center shrink-0"
-              aria-label="Enviar pregunta a GuaneñaBot"
-              title="Enviar pregunta"
+              aria-label={t.send}
+              title={t.send}
             >
               <Send className="w-4 h-4 stroke-[2.5]" />
             </button>

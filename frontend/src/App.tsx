@@ -17,6 +17,7 @@ import { fetchActiveReports, submitIncidentReport } from './services/reportServi
 import { useAuth } from './context/AuthContext';
 import { RefreshCw, ShieldAlert, MapPin, Crosshair } from 'lucide-react';
 import { useRealtimeLocation } from './hooks/useRealtimeLocation';
+import { getTranslation, Language } from './utils/i18n';
 
 export function App() {
   const { user, isAuthenticated, loading: authLoading, logout } = useAuth();
@@ -24,9 +25,10 @@ export function App() {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Language toggle state ('ES' | 'EN')
-  const [lang, setLang] = useState<'ES' | 'EN'>(() => {
+  const [lang, setLang] = useState<Language>(() => {
     try {
-      return (localStorage.getItem('carnavalia_lang') as 'ES' | 'EN') || 'ES';
+      return (localStorage.getItem('carnavalia-lang') as Language) ||
+             (localStorage.getItem('carnavalia_lang') as Language) || 'ES';
     } catch {
       return 'ES';
     }
@@ -34,9 +36,13 @@ export function App() {
 
   const toggleLanguage = useCallback(() => {
     setLang((prev) => {
-      const next = prev === 'ES' ? 'EN' : 'ES';
+      const next: Language = prev === 'ES' ? 'EN' : 'ES';
       try {
+        localStorage.setItem('carnavalia-lang', next);
         localStorage.setItem('carnavalia_lang', next);
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('language-change', { detail: { lang: next } }));
+        }
       } catch (e) {
         console.warn('Error saving language preference:', e);
       }
@@ -47,7 +53,8 @@ export function App() {
   // Theme toggle state ('dark' | 'light')
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     try {
-      return (localStorage.getItem('carnavalia_theme') as 'dark' | 'light') || 'dark';
+      return (localStorage.getItem('carnavalia-theme') as 'dark' | 'light') ||
+             (localStorage.getItem('carnavalia_theme') as 'dark' | 'light') || 'dark';
     } catch {
       return 'dark';
     }
@@ -57,11 +64,16 @@ export function App() {
     setTheme((prev) => {
       const next = prev === 'dark' ? 'light' : 'dark';
       try {
+        localStorage.setItem('carnavalia-theme', next);
         localStorage.setItem('carnavalia_theme', next);
-        if (next === 'light') {
-          document.documentElement.classList.add('carnavalia-light-mode');
-        } else {
+        if (next === 'dark') {
+          document.documentElement.classList.add('dark');
+          document.documentElement.classList.remove('light');
           document.documentElement.classList.remove('carnavalia-light-mode');
+        } else {
+          document.documentElement.classList.remove('dark');
+          document.documentElement.classList.add('light');
+          document.documentElement.classList.add('carnavalia-light-mode');
         }
       } catch (e) {
         console.warn('Error saving theme preference:', e);
@@ -71,12 +83,18 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    if (theme === 'light') {
-      document.documentElement.classList.add('carnavalia-light-mode');
-    } else {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
       document.documentElement.classList.remove('carnavalia-light-mode');
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.add('carnavalia-light-mode');
     }
   }, [theme]);
+
+  const t = getTranslation(lang);
   
   // Auditar estrictamente el estado de autenticación desde localStorage con manejo seguro de excepciones
   const [isSessionActive, setIsSessionActive] = useState<boolean>(() => {
@@ -351,9 +369,9 @@ export function App() {
 
   // 3. Una vez autenticado con sesión activa, renderizar el Dashboard GIS Stitch Oficial
   return (
-    <div className="min-h-screen bg-[#08080a] text-slate-100 font-sans selection:bg-yellow-400 selection:text-stone-950 overflow-hidden relative">
+    <div className={`min-h-screen ${theme === 'dark' ? 'bg-[#08080a] text-white' : 'bg-slate-50 text-slate-900'} font-sans selection:bg-yellow-400 selection:text-stone-950 overflow-hidden relative`}>
       {/* 1. SIDEBAR IZQUIERDA (Especificación Stitch) */}
-      <aside className={`fixed left-0 top-0 h-full w-72 bg-[#0c0c10]/95 border-r border-[#1e1e28] backdrop-blur-2xl z-40 flex flex-col justify-between p-4 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.85)] transition-transform duration-300 ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+      <aside className={`fixed left-0 top-0 h-full w-72 ${theme === 'dark' ? 'bg-[#0c0c10]/95 border-[#1e1e28]' : 'bg-white/95 border-slate-200 shadow-2xl'} border-r backdrop-blur-2xl z-40 flex flex-col justify-between p-4 transition-transform duration-300 ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
         <div className="flex flex-col gap-6">
           {/* Logo con icono Satellite */}
           <div className="flex items-center justify-between px-1">
@@ -362,15 +380,15 @@ export function App() {
                 <span className="material-symbols-outlined text-[#1a1400] text-[24px] font-bold">theater_comedy</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[20px] tracking-tight text-white font-bold leading-tight">CarnavalIA</span>
-                <span className="text-[11px] text-yellow-400 tracking-widest uppercase font-semibold">GIS Pasto · UNESCO</span>
+                <span className={`text-[20px] tracking-tight font-bold leading-tight ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>CarnavalIA</span>
+                <span className="text-[11px] text-yellow-500 dark:text-yellow-400 tracking-widest uppercase font-semibold">{t.sidebar.brandSubtitle}</span>
               </div>
             </div>
             {/* Cerrar en móvil */}
             <button
               type="button"
               onClick={() => setIsMobileSidebarOpen(false)}
-              className="md:hidden p-1.5 text-neutral-400 hover:text-white"
+              className={`md:hidden p-1.5 ${theme === 'dark' ? 'text-neutral-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'}`}
             >
               <span className="material-symbols-outlined text-[20px]">close</span>
             </button>
@@ -379,16 +397,16 @@ export function App() {
           {/* Badge Día en Vivo */}
           <div
             onClick={() => setCalendarOpen(true)}
-            className="p-2.5 rounded-xl bg-[#15151c]/90 border border-yellow-500/20 backdrop-blur-md flex items-center justify-between cursor-pointer hover:border-yellow-500/40 transition group"
-            title="Cambiar fecha del Carnaval"
+            className={`p-2.5 rounded-xl ${theme === 'dark' ? 'bg-[#15151c]/90 border-yellow-500/20' : 'bg-slate-100 border-yellow-600/30'} border backdrop-blur-md flex items-center justify-between cursor-pointer hover:border-yellow-500/40 transition group`}
+            title={lang === 'ES' ? 'Cambiar fecha del Carnaval' : 'Change Carnival date'}
           >
             <div className="flex items-center gap-2 min-w-0">
               <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 animate-pulse shadow-[0_0_8px_#facc15] shrink-0" />
-              <span className="text-[12px] text-gray-200 font-semibold truncate">
+              <span className={`text-[12px] font-semibold truncate ${theme === 'dark' ? 'text-gray-200' : 'text-slate-700'}`}>
                 {carnivalDayNames[currentCarnivalDay] || 'Día 6: Desfile Magno'}
               </span>
             </div>
-            <span className="text-[11px] text-yellow-400 font-bold shrink-0 ml-1">LIVE</span>
+            <span className="text-[11px] text-yellow-500 dark:text-yellow-400 font-bold shrink-0 ml-1">{t.nav.live}</span>
           </div>
 
           {/* Menú de Navegación Vertical */}
@@ -404,11 +422,13 @@ export function App() {
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold transition-all text-left cursor-pointer ${
                 activeView === 'senda' && !reportsModalOpen && !calendarOpen
                   ? 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-stone-950 shadow-[0_0_20px_rgba(250,204,21,0.45)] border border-yellow-200'
-                  : 'text-neutral-300 hover:bg-[#1a1a24] hover:text-yellow-400 border border-transparent hover:border-yellow-500/20'
+                  : theme === 'dark'
+                    ? 'text-neutral-300 hover:bg-[#1a1a24] hover:text-yellow-400 border border-transparent hover:border-yellow-500/20'
+                    : 'text-slate-700 hover:bg-slate-100 hover:text-yellow-600 border border-transparent'
               }`}
             >
               <span className="material-symbols-outlined text-[18px]">map</span>
-              <span className="text-[14px]">Mapa Principal</span>
+              <span className="text-[14px]">{t.sidebar.mainMap}</span>
             </button>
 
             <button
@@ -424,11 +444,13 @@ export function App() {
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold transition-all text-left cursor-pointer ${
                 showSenda
                   ? 'text-yellow-400 bg-[#1a1a24] border border-yellow-500/30'
-                  : 'text-neutral-300 hover:bg-[#1a1a24] hover:text-yellow-400 border border-transparent hover:border-yellow-500/20'
+                  : theme === 'dark'
+                    ? 'text-neutral-300 hover:bg-[#1a1a24] hover:text-yellow-400 border border-transparent hover:border-yellow-500/20'
+                    : 'text-slate-700 hover:bg-slate-100 hover:text-yellow-600 border border-transparent'
               }`}
             >
               <span className="material-symbols-outlined text-[20px]">route</span>
-              <span className="text-[14px]">Senda del Carnaval</span>
+              <span className="text-[14px]">{t.sidebar.carnivalSenda}</span>
               <span className={`ml-auto w-2 h-2 rounded-full ${showSenda ? 'bg-yellow-400 shadow-[0_0_8px_#facc15]' : 'bg-neutral-600'}`} />
             </button>
 
@@ -440,10 +462,10 @@ export function App() {
                 }
                 setIsMobileSidebarOpen(false);
               }}
-              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-neutral-300 hover:bg-[#1a1a24] hover:text-yellow-400 border border-transparent hover:border-yellow-500/20 transition-all font-semibold text-left cursor-pointer group"
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl ${theme === 'dark' ? 'text-neutral-300 hover:bg-[#1a1a24] hover:text-yellow-400 hover:border-yellow-500/20' : 'text-slate-700 hover:bg-slate-100 hover:text-yellow-600'} border border-transparent transition-all font-semibold text-left cursor-pointer group`}
             >
               <span className="material-symbols-outlined text-[20px] group-hover:text-yellow-400">smart_toy</span>
-              <span className="text-[14px]">GuaneñaBot AI</span>
+              <span className="text-[14px]">{t.sidebar.guanenaBot}</span>
               <span className="ml-auto text-[10px] font-mono px-1.5 py-0.5 rounded bg-yellow-400/20 text-yellow-300 font-bold">2.5</span>
             </button>
 
@@ -457,11 +479,13 @@ export function App() {
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold transition-all text-left cursor-pointer ${
                 calendarOpen
                   ? 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-stone-950 font-bold border border-yellow-200'
-                  : 'text-neutral-300 hover:bg-[#1a1a24] hover:text-yellow-400 border border-transparent hover:border-yellow-500/20'
+                  : theme === 'dark'
+                    ? 'text-neutral-300 hover:bg-[#1a1a24] hover:text-yellow-400 border border-transparent hover:border-yellow-500/20'
+                    : 'text-slate-700 hover:bg-slate-100 hover:text-yellow-600 border border-transparent'
               }`}
             >
               <span className="material-symbols-outlined text-[20px]">emergency</span>
-              <span className="text-[14px]">Puntos Cívicos y Salud</span>
+              <span className="text-[14px]">{t.sidebar.civicHealth}</span>
             </button>
 
             <button
@@ -474,11 +498,13 @@ export function App() {
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-semibold transition-all text-left cursor-pointer ${
                 reportsModalOpen
                   ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white font-bold shadow-lg border border-red-400'
-                  : 'text-neutral-300 hover:bg-[#1a1a24] hover:text-yellow-400 border border-transparent hover:border-yellow-500/20'
+                  : theme === 'dark'
+                    ? 'text-neutral-300 hover:bg-[#1a1a24] hover:text-yellow-400 border border-transparent hover:border-yellow-500/20'
+                    : 'text-slate-700 hover:bg-slate-100 hover:text-yellow-600 border border-transparent'
               }`}
             >
               <span className="material-symbols-outlined text-[20px]">warning</span>
-              <span className="text-[14px]">Centro de Alertas</span>
+              <span className="text-[14px]">{t.sidebar.alertCenter}</span>
               {reports.length > 0 && (
                 <span className="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-red-500 text-white">
                   {reports.length}
@@ -490,28 +516,28 @@ export function App() {
 
         {/* Bloque Inferior: Datum Telemetría + Usuario y Salir */}
         <div className="flex flex-col gap-3">
-          <div className="p-2.5 rounded-xl bg-[#121218] border border-[#22222e] flex flex-col gap-1 text-[11px] font-mono">
-            <span className="text-neutral-400">DATUM TELEMETRÍA</span>
-            <div className="flex justify-between items-center text-yellow-400 font-semibold">
+          <div className={`p-2.5 rounded-xl ${theme === 'dark' ? 'bg-[#121218] border-[#22222e]' : 'bg-slate-100 border-slate-200'} border flex flex-col gap-1 text-[11px] font-mono`}>
+            <span className={theme === 'dark' ? 'text-neutral-400' : 'text-slate-500'}>{t.telemetry.datumTelemetry}</span>
+            <div className="flex justify-between items-center text-yellow-500 dark:text-yellow-400 font-semibold">
               <span>{userGps?.lat ? `${userGps.lat.toFixed(4)}°N` : "01°12'54\"N"}</span>
               <span>{userGps?.lng ? `${userGps.lng.toFixed(4)}°W` : "77°16'44\"W"}</span>
             </div>
-            <div className="flex justify-between items-center text-neutral-400">
+            <div className={`flex justify-between items-center ${theme === 'dark' ? 'text-neutral-400' : 'text-slate-500'}`}>
               <span>ALT: 2,527m</span>
-              <span className="text-amber-400 font-semibold">{userGps ? 'GPS ACTIVO' : 'GNSS: RTK FIX'}</span>
+              <span className="text-amber-500 font-semibold">{userGps ? t.telemetry.liveGps : 'GNSS: RTK FIX'}</span>
             </div>
           </div>
 
-          <div className="pt-2 border-t border-[#1e1e28] flex items-center justify-between">
+          <div className={`pt-2 border-t ${theme === 'dark' ? 'border-[#1e1e28]' : 'border-slate-200'} flex items-center justify-between`}>
             <div className="flex items-center gap-2 min-w-0">
-              <div className="w-7 h-7 rounded-lg bg-yellow-400/20 border border-yellow-400/30 flex items-center justify-center text-xs font-bold text-yellow-300 shrink-0">
+              <div className="w-7 h-7 rounded-lg bg-yellow-400/20 border border-yellow-400/30 flex items-center justify-center text-xs font-bold text-yellow-500 dark:text-yellow-300 shrink-0">
                 👤
               </div>
               <div className="flex flex-col min-w-0">
-                <span className="text-xs font-semibold text-white truncate max-w-[110px]">
+                <span className={`text-xs font-semibold truncate max-w-[110px] ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
                   {displayName}
                 </span>
-                <span className="text-[10px] text-emerald-400">En línea</span>
+                <span className="text-[10px] text-emerald-500 dark:text-emerald-400">Online</span>
               </div>
             </div>
 
@@ -519,11 +545,11 @@ export function App() {
               id="sidebar-logout-btn"
               type="button"
               onClick={handleLogout}
-              className="p-1.5 px-2 rounded-lg text-neutral-400 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition cursor-pointer text-xs flex items-center gap-1 shrink-0"
-              title="Cerrar sesión e ir al login"
+              className={`p-1.5 px-2 rounded-lg ${theme === 'dark' ? 'text-neutral-400 hover:text-red-400 hover:bg-red-500/10' : 'text-slate-600 hover:text-red-600 hover:bg-red-50'} border border-transparent transition cursor-pointer text-xs flex items-center gap-1 shrink-0`}
+              title={t.sidebar.logOut}
             >
               <span className="material-symbols-outlined text-[16px]">logout</span>
-              <span className="text-[11px] font-bold">Salir</span>
+              <span className="text-[11px] font-bold">{t.sidebar.logOut}</span>
             </button>
           </div>
         </div>
@@ -538,31 +564,31 @@ export function App() {
       )}
 
       {/* 2. CONTENEDOR PRINCIPAL */}
-      <div className="md:pl-72 min-h-screen bg-[#08080a] relative flex flex-col h-screen overflow-hidden">
+      <div className={`md:pl-72 min-h-screen ${theme === 'dark' ? 'bg-[#08080a]' : 'bg-slate-50'} relative flex flex-col h-screen overflow-hidden`}>
         {/* HEADER SUPERIOR */}
-        <header className="fixed top-0 left-0 md:left-72 right-0 h-16 bg-[#0c0c10]/90 border-b border-[#1e1e28] backdrop-blur-xl z-30 flex items-center justify-between px-4 sm:px-6 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.6)]">
+        <header className={`fixed top-0 left-0 md:left-72 right-0 h-16 ${theme === 'dark' ? 'bg-[#0c0c10]/90 border-[#1e1e28]' : 'bg-white/90 border-slate-200'} border-b backdrop-blur-xl z-30 flex items-center justify-between px-4 sm:px-6 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.15)]`}>
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => setIsMobileSidebarOpen(true)}
-              className="md:hidden p-2 rounded-xl bg-[#16161f] border border-[#272735] text-yellow-400 hover:text-white cursor-pointer"
+              className={`md:hidden p-2 rounded-xl ${theme === 'dark' ? 'bg-[#16161f] border-[#272735] text-yellow-400' : 'bg-slate-100 border-slate-300 text-yellow-600'} border cursor-pointer`}
               title="Abrir menú"
             >
               <span className="material-symbols-outlined text-[20px]">menu</span>
             </button>
-            <div className="flex items-center gap-2 bg-[#16161f] border border-yellow-500/30 px-3 py-1 rounded-full text-xs font-mono text-yellow-300 shadow-sm">
-              <span className="material-symbols-outlined text-[16px] text-yellow-400 animate-pulse">near_me</span>
-              <span className="hidden sm:inline">PASTO_CAM_VECTOR_FEED</span>
-              <span className="sm:hidden font-bold">PASTO SIG</span>
+            <div className={`flex items-center gap-2 ${theme === 'dark' ? 'bg-[#16161f] border-yellow-500/30 text-yellow-300' : 'bg-slate-100 border-yellow-600/30 text-yellow-700'} border px-3 py-1 rounded-full text-xs font-mono shadow-sm`}>
+              <span className="material-symbols-outlined text-[16px] text-yellow-500 dark:text-yellow-400 animate-pulse">near_me</span>
+              <span className="hidden sm:inline">{t.nav.feedTitle}</span>
+              <span className="sm:hidden font-bold">{t.nav.feedTitleMobile}</span>
             </div>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="hidden sm:flex items-center bg-[#15151d] border border-[#272735] focus-within:border-yellow-500/50 rounded-xl px-3 py-1.5 gap-2 transition">
-              <span className="material-symbols-outlined text-neutral-400 text-[18px]">search</span>
+            <div className={`hidden sm:flex items-center ${theme === 'dark' ? 'bg-[#15151d] border-[#272735]' : 'bg-slate-100 border-slate-300'} border focus-within:border-yellow-500/50 rounded-xl px-3 py-1.5 gap-2 transition`}>
+              <span className={`material-symbols-outlined ${theme === 'dark' ? 'text-neutral-400' : 'text-slate-500'} text-[18px]`}>search</span>
               <input
-                className="bg-transparent text-white text-xs placeholder:text-neutral-500 outline-none w-40 md:w-52"
-                placeholder={lang === 'EN' ? 'Search troupe, float, stage...' : 'Buscar cuadrilla, carroza, tarima...'}
+                className={`bg-transparent ${theme === 'dark' ? 'text-white placeholder:text-neutral-500' : 'text-slate-900 placeholder:text-slate-400'} text-xs outline-none w-40 md:w-52`}
+                placeholder={t.nav.searchPlaceholder}
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -573,10 +599,10 @@ export function App() {
             <button
               type="button"
               onClick={toggleLanguage}
-              className="h-8 px-2.5 py-1 text-xs font-mono font-bold rounded-xl bg-[#15151d]/90 hover:bg-[#1f1f2c] border border-[#272735] hover:border-yellow-500/40 text-neutral-300 hover:text-yellow-400 backdrop-blur-md transition-all flex items-center gap-1 active:scale-95 cursor-pointer shadow-sm"
-              title={lang === 'ES' ? 'Cambiar a Inglés (EN)' : 'Switch to Spanish (ES)'}
+              className={`h-8 px-2.5 py-1 text-xs font-mono font-bold rounded-xl ${theme === 'dark' ? 'bg-[#15151d]/90 hover:bg-[#1f1f2c] border-[#272735] text-neutral-300' : 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700'} border hover:border-yellow-500/40 hover:text-yellow-500 backdrop-blur-md transition-all flex items-center gap-1 active:scale-95 cursor-pointer shadow-sm`}
+              title={lang === 'ES' ? 'Switch to English' : 'Cambiar a Español'}
             >
-              <span className="material-symbols-outlined text-[15px] text-yellow-400">translate</span>
+              <span className="material-symbols-outlined text-[15px] text-yellow-500 dark:text-yellow-400">translate</span>
               <span>{lang}</span>
             </button>
 
@@ -584,10 +610,10 @@ export function App() {
             <button
               type="button"
               onClick={toggleTheme}
-              className="h-8 w-8 rounded-xl bg-[#15151d]/90 hover:bg-[#1f1f2c] border border-[#272735] hover:border-yellow-500/40 text-neutral-300 hover:text-yellow-400 backdrop-blur-md transition-all flex items-center justify-center active:scale-95 cursor-pointer shadow-sm"
-              title={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+              className={`h-8 w-8 rounded-xl ${theme === 'dark' ? 'bg-[#15151d]/90 hover:bg-[#1f1f2c] border-[#272735] text-neutral-300' : 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700'} border hover:border-yellow-500/40 hover:text-yellow-500 backdrop-blur-md transition-all flex items-center justify-center active:scale-95 cursor-pointer shadow-sm`}
+              title={theme === 'dark' ? (lang === 'ES' ? 'Cambiar a modo claro' : 'Switch to light mode') : (lang === 'ES' ? 'Cambiar a modo oscuro' : 'Switch to dark mode')}
             >
-              <span className="material-symbols-outlined text-[17px] text-yellow-400">
+              <span className="material-symbols-outlined text-[17px] text-yellow-500 dark:text-yellow-400">
                 {theme === 'dark' ? 'light_mode' : 'dark_mode'}
               </span>
             </button>
@@ -601,7 +627,7 @@ export function App() {
               className="h-9 px-3.5 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-amber-500 hover:from-red-500 hover:to-amber-400 text-white font-bold flex items-center gap-2 shadow-[0_0_20px_rgba(239,68,68,0.45)] border border-amber-300/40 active:scale-95 transition cursor-pointer"
             >
               <span className="material-symbols-outlined text-[17px]">sos</span>
-              <span className="text-xs uppercase tracking-wider font-extrabold">Alerta SOS</span>
+              <span className="text-xs uppercase tracking-wider font-extrabold">{t.nav.sosButton}</span>
             </button>
           </div>
         </header>
@@ -649,11 +675,13 @@ export function App() {
               className={`h-8 px-3 rounded-xl text-xs font-black flex items-center gap-2 transition cursor-pointer active:scale-95 ${
                 showSenda
                   ? 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-stone-950 shadow-[0_0_18px_rgba(250,204,21,0.4)] border border-yellow-200'
-                  : 'bg-[#101016]/95 border border-yellow-500/40 text-yellow-300 hover:bg-yellow-500/20 shadow-lg'
+                  : theme === 'dark'
+                    ? 'bg-[#101016]/95 border border-yellow-500/40 text-yellow-300 hover:bg-yellow-500/20 shadow-lg'
+                    : 'bg-white/95 border border-yellow-600/40 text-yellow-700 hover:bg-yellow-50 shadow-md'
               }`}
             >
               <span className="material-symbols-outlined text-[15px]">route</span>
-              <span>Senda Oficial (7.5 km)</span>
+              <span>{showSenda ? t.filters.sendaShown : t.filters.officialSenda}</span>
             </button>
 
             <button
@@ -663,10 +691,10 @@ export function App() {
                   window.dispatchEvent(new CustomEvent('show-poi-category', { detail: { category: 'restaurantes' } }));
                 }
               }}
-              className="h-8 px-3 rounded-xl bg-[#101016]/95 border border-yellow-500/40 hover:border-yellow-400 text-yellow-200 text-xs font-bold flex items-center gap-1.5 shadow-lg active:scale-95 transition cursor-pointer"
+              className={`h-8 px-3 rounded-xl ${theme === 'dark' ? 'bg-[#101016]/95 border-yellow-500/40 hover:border-yellow-400 text-yellow-200' : 'bg-white/95 border-yellow-600/40 hover:border-yellow-500 text-yellow-800'} border text-xs font-bold flex items-center gap-1.5 shadow-md active:scale-95 transition cursor-pointer`}
             >
               <span>🍴</span>
-              <span>Gastronomía (34)</span>
+              <span>{t.filters.gastronomy}</span>
             </button>
 
             <button
@@ -676,10 +704,10 @@ export function App() {
                   window.dispatchEvent(new CustomEvent('show-poi-category', { detail: { category: 'salud' } }));
                 }
               }}
-              className="h-8 px-3 rounded-xl bg-[#101016]/95 border border-rose-500/30 hover:border-rose-400 text-rose-200 text-xs font-bold flex items-center gap-1.5 shadow-lg active:scale-95 transition cursor-pointer"
+              className={`h-8 px-3 rounded-xl ${theme === 'dark' ? 'bg-[#101016]/95 border-rose-500/30 hover:border-rose-400 text-rose-200' : 'bg-white/95 border-rose-500/40 hover:border-rose-500 text-rose-800'} border text-xs font-bold flex items-center gap-1.5 shadow-md active:scale-95 transition cursor-pointer`}
             >
               <span>🚑</span>
-              <span>Puestos Salud (12)</span>
+              <span>{t.filters.healthPosts}</span>
             </button>
 
             <button
@@ -689,10 +717,10 @@ export function App() {
                   window.dispatchEvent(new CustomEvent('show-poi-category', { detail: { category: 'policia' } }));
                 }
               }}
-              className="h-8 px-3 rounded-xl bg-[#101016]/95 border border-blue-500/30 hover:border-blue-400 text-blue-200 text-xs font-bold flex items-center gap-1.5 shadow-lg active:scale-95 transition cursor-pointer"
+              className={`h-8 px-3 rounded-xl ${theme === 'dark' ? 'bg-[#101016]/95 border-blue-500/30 hover:border-blue-400 text-blue-200' : 'bg-white/95 border-blue-500/40 hover:border-blue-500 text-blue-800'} border text-xs font-bold flex items-center gap-1.5 shadow-md active:scale-95 transition cursor-pointer`}
             >
               <span>👮</span>
-              <span>CAIs Policía</span>
+              <span>{t.filters.policeCai}</span>
             </button>
 
             <button
@@ -702,31 +730,31 @@ export function App() {
                   window.dispatchEvent(new CustomEvent('show-poi-category', { detail: { category: 'banio' } }));
                 }
               }}
-              className="h-8 px-3 rounded-xl bg-[#101016]/95 border border-emerald-500/30 hover:border-emerald-400 text-emerald-200 text-xs font-bold flex items-center gap-1.5 shadow-lg active:scale-95 transition cursor-pointer"
+              className={`h-8 px-3 rounded-xl ${theme === 'dark' ? 'bg-[#101016]/95 border-emerald-500/30 hover:border-emerald-400 text-emerald-200' : 'bg-white/95 border-emerald-500/40 hover:border-emerald-500 text-emerald-800'} border text-xs font-bold flex items-center gap-1.5 shadow-md active:scale-95 transition cursor-pointer`}
             >
               <span>🚻</span>
-              <span>Baños</span>
+              <span>{t.filters.restrooms}</span>
             </button>
           </div>
 
           {/* BARRA DE TELEMETRÍA INFERIOR IZQUIERDA */}
-          <div className="absolute left-4 sm:left-6 bottom-6 z-20 hidden md:flex items-center gap-3 bg-[#0c0c10]/95 border border-[#222230] backdrop-blur-xl px-4 py-2 rounded-xl shadow-xl text-xs font-mono select-none">
-            <span className="text-white font-bold">SENDA: 7.5 KM</span>
-            <span className="text-neutral-600">|</span>
-            <span className="text-yellow-300 font-bold">ESPECTADORES: 420,000</span>
-            <span className="text-neutral-600">|</span>
-            <span className="text-yellow-400 font-bold">16°C • PASTOLUZ</span>
+          <div className={`absolute left-4 sm:left-6 bottom-6 z-20 hidden md:flex items-center gap-3 ${theme === 'dark' ? 'bg-[#0c0c10]/95 border-[#222230] text-white' : 'bg-white/95 border-slate-200 text-slate-800'} border backdrop-blur-xl px-4 py-2 rounded-xl shadow-xl text-xs font-mono select-none`}>
+            <span className="font-bold">{t.telemetry.carnivalTitle}</span>
+            <span className="text-neutral-400">|</span>
+            <span className="text-yellow-600 dark:text-yellow-300 font-bold">{t.telemetry.spectators}</span>
+            <span className="text-neutral-400">|</span>
+            <span className="text-yellow-600 dark:text-yellow-400 font-bold">{t.telemetry.temp}</span>
           </div>
 
           {/* BOTÓN FLOTANTE GPS CENTRAR EN MI UBICACIÓN */}
           <button
             type="button"
             onClick={() => centerOnMe()}
-            className="absolute left-4 sm:left-6 bottom-16 md:bottom-18 z-20 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#101016]/90 border border-yellow-500/30 hover:border-yellow-400 text-yellow-300 text-xs font-mono font-bold shadow-lg transition active:scale-95 cursor-pointer"
-            title="Centrar mapa en mi GPS"
+            className={`absolute left-4 sm:left-6 bottom-16 md:bottom-18 z-20 flex items-center gap-2 px-3 py-1.5 rounded-xl ${theme === 'dark' ? 'bg-[#101016]/90 border-yellow-500/30 hover:border-yellow-400 text-yellow-300' : 'bg-white/90 border-yellow-600/40 hover:border-yellow-500 text-yellow-700'} border text-xs font-mono font-bold shadow-lg transition active:scale-95 cursor-pointer`}
+            title={t.telemetry.centerOnMe}
           >
-            <Crosshair className="w-3.5 h-3.5 text-yellow-400" />
-            <span className="text-[11px] font-mono">GPS EN VIVO</span>
+            <Crosshair className="w-3.5 h-3.5 text-yellow-500 dark:text-yellow-400" />
+            <span className="text-[11px] font-mono">{t.telemetry.liveGps}</span>
           </button>
 
           {/* GUANEÑABOT HUD FLOTANTE ABAJO A LA DERECHA */}
@@ -734,6 +762,7 @@ export function App() {
             onRouteReceived={handleRouteReceived}
             onFocusSenda={handleFocusSenda}
             onSelectDestination={handleSelectDestination}
+            lang={lang}
           />
 
           {/* Prompt para Instalar PWA */}
@@ -753,6 +782,7 @@ export function App() {
         userGps={userGps}
         onReportCreated={handleReportCreated}
         onShowToast={showToast}
+        lang={lang}
       />
 
       {/* Modal de Lista de Reportes Ciudadanos */}
